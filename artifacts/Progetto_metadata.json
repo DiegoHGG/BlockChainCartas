@@ -1,0 +1,59 @@
+{
+	"compiler": {
+		"version": "0.8.30+commit.73712a01"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [],
+				"name": "messaggio",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"alpargata.sol": "Progetto"
+		},
+		"evmVersion": "london",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"alpargata.sol": {
+			"keccak256": "0x333c23523d1b28d56de6e31c9ef8be0fd66469ed11622b9b9f0670f1508de618",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://f2e51665bb8d591ec346d8e18d4a977c5cf751b24f6af84373a3f53895f26423",
+				"dweb:/ipfs/QmQqVR32aeudVSRKDwSMsGxbmzMJCgGLr6qzjupSSskN3e"
+			]
+		}
+	},
+	"version": 1
+}
