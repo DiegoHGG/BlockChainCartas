@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ethers } from "ethers";
 import MarketTab from "./MarketTab";
+import SwapTab from "./SwapTab";
 
 /**
  * Dirección del contrato desplegado.
@@ -94,7 +95,7 @@ export default function App() {
    */
   const hasEthereum = typeof window !== "undefined" && window.ethereum;
   //use state para estado del nft que se quiere comprar 
-  const [activeTab, setActiveTab] = useState("nft"); // "nft" | "market"
+  const [activeTab, setActiveTab] = useState("nft"); // "nft" | "market |swap"
 
   /**
    * provider (solo lectura): se usa para calls view y getNetwork
@@ -477,15 +478,13 @@ export default function App() {
         <button onClick={() => setActiveTab("market")} style={{ padding: "10px 14px", cursor: "pointer" }}>
           Compra / Venta
         </button>
+        <button onClick={() => setActiveTab("swap")} style={{ padding: "10px 14px", cursor: "pointer" }}>
+          Swap
+        </button>
       </div>
 
       <div style={{ marginTop: 16 }}>
-        {activeTab === "nft" ? (
-          <>
-            {/* aquí dejas tu UI actual (Leer/Mint/Update) tal como está */}
-            {/* no hace falta cambiar nada más */}
-          </>
-        ) : (
+        {activeTab === "market" ? (
           <MarketTab
             provider={provider}
             account={account}
@@ -493,158 +492,171 @@ export default function App() {
             marketAddress={MARKET_ADDRESS}
             onStatus={setStatus}
           />
-        )}
+        ) : activeTab === "swap" ? (
+          <SwapTab
+            provider={provider}
+            account={account}
+            nftAddress={NFT_ADDRESS}
+            marketAddress={MARKET_ADDRESS}
+            onStatus={setStatus}
+          />
+        ) : null}
       </div>
 
-      <hr style={{ margin: "22px 0" }} />
+      {activeTab === "nft" && (
+        <>
 
-      {/* READ */}
-      <section style={{ padding: 14, border: "1px solid #ddd", borderRadius: 14 }}>
-        <h2 style={{ marginTop: 0 }}>Leer carta</h2>
+          <hr style={{ margin: "22px 0" }} />
 
-        {/* Botón debug clave */}
-        <button onClick={readNextTokenId} style={{ padding: "10px 14px", cursor: "pointer", marginBottom: 10 }}>
-          Debug: nextTokenId()
-        </button>
+          {/* READ */}
+          <section style={{ padding: 14, border: "1px solid #ddd", borderRadius: 14 }}>
+            <h2 style={{ marginTop: 0 }}>Leer carta</h2>
 
-        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-          <label>
-            TokenId:&nbsp;
-            <input
-              value={tokenIdQuery}
-              onChange={(e) => setTokenIdQuery(e.target.value)}
-              style={{ padding: 8, width: 140 }}
-            />
-          </label>
-          <button onClick={readCard} style={{ padding: "10px 14px", cursor: "pointer" }}>
-            getCard(tokenId)
-          </button>
-          <button onClick={readEstadoOf} style={{ padding: "10px 14px", cursor: "pointer" }}>
-            estadoOf(tokenId)
-          </button>
-        </div>
+            {/* Botón debug clave */}
+            <button onClick={readNextTokenId} style={{ padding: "10px 14px", cursor: "pointer", marginBottom: 10 }}>
+              Debug: nextTokenId()
+            </button>
 
-        <div style={{ marginTop: 14 }}>
-          {!cardResult ? (
-            <div style={{ opacity: 0.7 }}>Sin resultados todavía.</div>
-          ) : (
-            <div style={{ padding: 12, borderRadius: 12, background: "#fafafa", border: "1px solid #eee" }}>
-              <div><b>tokenId:</b> {cardResult.tokenId}</div>
-              {cardResult.owner && <div><b>owner:</b> {cardResult.owner}</div>}
-              {cardResult.juego && <div><b>juego:</b> {cardResult.juego}</div>}
-              {cardResult.expansion && <div><b>expansion:</b> {cardResult.expansion}</div>}
-              {cardResult.numero && <div><b>numero:</b> {cardResult.numero}</div>}
-              {cardResult.rareza && <div><b>rareza:</b> {cardResult.rareza}</div>}
-              {typeof cardResult.estado === "number" && (
-                <div><b>estado:</b> {cardResult.estado} ({ESTADOS[cardResult.estado] ?? "?"})</div>
-              )}
-              {updatedAtHuman && <div><b>updatedAt:</b> {cardResult.updatedAt} ({updatedAtHuman})</div>}
+            <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+              <label>
+                TokenId:&nbsp;
+                <input
+                  value={tokenIdQuery}
+                  onChange={(e) => setTokenIdQuery(e.target.value)}
+                  style={{ padding: 8, width: 140 }}
+                />
+              </label>
+              <button onClick={readCard} style={{ padding: "10px 14px", cursor: "pointer" }}>
+                getCard(tokenId)
+              </button>
+              <button onClick={readEstadoOf} style={{ padding: "10px 14px", cursor: "pointer" }}>
+                estadoOf(tokenId)
+              </button>
             </div>
-          )}
-        </div>
 
-        <div style={{ marginTop: 10, opacity: 0.75 }}>
-          💡 Si <code>getCard</code> revierte: normalmente es porque ese tokenId no existe (no minteado),
-          o estás en la red equivocada.
-        </div>
-      </section>
+            <div style={{ marginTop: 14 }}>
+              {!cardResult ? (
+                <div style={{ opacity: 0.7 }}>Sin resultados todavía.</div>
+              ) : (
+                <div style={{ padding: 12, borderRadius: 12, background: "#fafafa", border: "1px solid #eee" }}>
+                  <div><b>tokenId:</b> {cardResult.tokenId}</div>
+                  {cardResult.owner && <div><b>owner:</b> {cardResult.owner}</div>}
+                  {cardResult.juego && <div><b>juego:</b> {cardResult.juego}</div>}
+                  {cardResult.expansion && <div><b>expansion:</b> {cardResult.expansion}</div>}
+                  {cardResult.numero && <div><b>numero:</b> {cardResult.numero}</div>}
+                  {cardResult.rareza && <div><b>rareza:</b> {cardResult.rareza}</div>}
+                  {typeof cardResult.estado === "number" && (
+                    <div><b>estado:</b> {cardResult.estado} ({ESTADOS[cardResult.estado] ?? "?"})</div>
+                  )}
+                  {updatedAtHuman && <div><b>updatedAt:</b> {cardResult.updatedAt} ({updatedAtHuman})</div>}
+                </div>
+              )}
+            </div>
 
-      <hr style={{ margin: "22px 0" }} />
+            <div style={{ marginTop: 10, opacity: 0.75 }}>
+              💡 Si <code>getCard</code> revierte: normalmente es porque ese tokenId no existe (no minteado),
+              o estás en la red equivocada.
+            </div>
+          </section>
 
-      {/* MINT */}
-      <section style={{ padding: 14, border: "1px solid #ddd", borderRadius: 14 }}>
-        <h2 style={{ marginTop: 0 }}>Mint (solo MINTER_ROLE)</h2>
+          <hr style={{ margin: "22px 0" }} />
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <label>
-            To (address)
-            <input value={mintTo} onChange={(e) => setMintTo(e.target.value)} style={{ width: "100%", padding: 8 }} />
-          </label>
-          <label>
-            Estado inicial
-            <select value={mintEstado} onChange={(e) => setMintEstado(e.target.value)} style={{ width: "100%", padding: 8 }}>
-              {ESTADOS.map((name, idx) => (
-                <option key={idx} value={idx}>
-                  {idx} - {name}
-                </option>
-              ))}
-            </select>
-          </label>
+          {/* MINT */}
+          <section style={{ padding: 14, border: "1px solid #ddd", borderRadius: 14 }}>
+            <h2 style={{ marginTop: 0 }}>Mint (solo MINTER_ROLE)</h2>
 
-          <label>
-            Juego
-            <input value={mintJuego} onChange={(e) => setMintJuego(e.target.value)} style={{ width: "100%", padding: 8 }} />
-          </label>
-          <label>
-            Expansión
-            <input
-              value={mintExpansion}
-              onChange={(e) => setMintExpansion(e.target.value)}
-              style={{ width: "100%", padding: 8 }}
-            />
-          </label>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <label>
+                To (address)
+                <input value={mintTo} onChange={(e) => setMintTo(e.target.value)} style={{ width: "100%", padding: 8 }} />
+              </label>
+              <label>
+                Estado inicial
+                <select value={mintEstado} onChange={(e) => setMintEstado(e.target.value)} style={{ width: "100%", padding: 8 }}>
+                  {ESTADOS.map((name, idx) => (
+                    <option key={idx} value={idx}>
+                      {idx} - {name}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-          <label>
-            Número
-            <input value={mintNumero} onChange={(e) => setMintNumero(e.target.value)} style={{ width: "100%", padding: 8 }} />
-          </label>
-          <label>
-            Rareza
-            <input value={mintRareza} onChange={(e) => setMintRareza(e.target.value)} style={{ width: "100%", padding: 8 }} />
-          </label>
-        </div>
+              <label>
+                Juego
+                <input value={mintJuego} onChange={(e) => setMintJuego(e.target.value)} style={{ width: "100%", padding: 8 }} />
+              </label>
+              <label>
+                Expansión
+                <input
+                  value={mintExpansion}
+                  onChange={(e) => setMintExpansion(e.target.value)}
+                  style={{ width: "100%", padding: 8 }}
+                />
+              </label>
 
-        <button onClick={mint} style={{ marginTop: 12, padding: "10px 14px", cursor: "pointer" }}>
-          Mint
-        </button>
+              <label>
+                Número
+                <input value={mintNumero} onChange={(e) => setMintNumero(e.target.value)} style={{ width: "100%", padding: 8 }} />
+              </label>
+              <label>
+                Rareza
+                <input value={mintRareza} onChange={(e) => setMintRareza(e.target.value)} style={{ width: "100%", padding: 8 }} />
+              </label>
+            </div>
 
-        <div style={{ marginTop: 10, opacity: 0.7 }}>
-          Si te revierte con <code>AccessControl</code>, esa cuenta no tiene el rol MINTER_ROLE.
-        </div>
-      </section>
+            <button onClick={mint} style={{ marginTop: 12, padding: "10px 14px", cursor: "pointer" }}>
+              Mint
+            </button>
 
-      <hr style={{ margin: "22px 0" }} />
+            <div style={{ marginTop: 10, opacity: 0.7 }}>
+              Si te revierte con <code>AccessControl</code>, esa cuenta no tiene el rol MINTER_ROLE.
+            </div>
+          </section>
 
-      {/* UPDATE ESTADO */}
-      <section style={{ padding: 14, border: "1px solid #ddd", borderRadius: 14 }}>
-        <h2 style={{ marginTop: 0 }}>Actualizar estado</h2>
+          <hr style={{ margin: "22px 0" }} />
 
-        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-          <label>
-            TokenId:&nbsp;
-            <input value={updTokenId} onChange={(e) => setUpdTokenId(e.target.value)} style={{ padding: 8, width: 140 }} />
-          </label>
+          {/* UPDATE ESTADO */}
+          <section style={{ padding: 14, border: "1px solid #ddd", borderRadius: 14 }}>
+            <h2 style={{ marginTop: 0 }}>Actualizar estado</h2>
 
-          <label>
-            Nuevo estado:&nbsp;
-            <select value={updEstado} onChange={(e) => setUpdEstado(e.target.value)} style={{ padding: 8 }}>
-              {ESTADOS.map((name, idx) => (
-                <option key={idx} value={idx}>
-                  {idx} - {name}
-                </option>
-              ))}
-            </select>
-          </label>
+            <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+              <label>
+                TokenId:&nbsp;
+                <input value={updTokenId} onChange={(e) => setUpdTokenId(e.target.value)} style={{ padding: 8, width: 140 }} />
+              </label>
 
-          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <input
-              type="checkbox"
-              checked={useAdminUpdate}
-              onChange={(e) => setUseAdminUpdate(e.target.checked)}
-            />
-            Usar <code>adminUpdateEstado</code> (solo ADMIN)
-          </label>
-        </div>
+              <label>
+                Nuevo estado:&nbsp;
+                <select value={updEstado} onChange={(e) => setUpdEstado(e.target.value)} style={{ padding: 8 }}>
+                  {ESTADOS.map((name, idx) => (
+                    <option key={idx} value={idx}>
+                      {idx} - {name}
+                    </option>
+                  ))}
+                </select>
+              </label>
 
-        <button onClick={updateEstado} style={{ marginTop: 12, padding: "10px 14px", cursor: "pointer" }}>
-          Actualizar
-        </button>
+              <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={useAdminUpdate}
+                  onChange={(e) => setUseAdminUpdate(e.target.checked)}
+                />
+                Usar <code>adminUpdateEstado</code> (solo ADMIN)
+              </label>
+            </div>
 
-        <div style={{ marginTop: 10, opacity: 0.7 }}>
-          <div><b>updateEstado</b>: owner o INSPECTOR.</div>
-          <div><b>adminUpdateEstado</b>: DEFAULT_ADMIN_ROLE.</div>
-        </div>
-      </section>
+            <button onClick={updateEstado} style={{ marginTop: 12, padding: "10px 14px", cursor: "pointer" }}>
+              Actualizar
+            </button>
+
+            <div style={{ marginTop: 10, opacity: 0.7 }}>
+              <div><b>updateEstado</b>: owner o INSPECTOR.</div>
+              <div><b>adminUpdateEstado</b>: DEFAULT_ADMIN_ROLE.</div>
+            </div>
+          </section>
+        </>
+      )}
     </div>
   );
 }
