@@ -32,6 +32,11 @@
 				"type": "error"
 			},
 			{
+				"inputs": [],
+				"name": "ERC721EnumerableForbiddenBatchMint",
+				"type": "error"
+			},
+			{
 				"inputs": [
 					{
 						"internalType": "address",
@@ -132,6 +137,22 @@
 					}
 				],
 				"name": "ERC721NonexistentToken",
+				"type": "error"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "index",
+						"type": "uint256"
+					}
+				],
+				"name": "ERC721OutOfBoundsIndex",
 				"type": "error"
 			},
 			{
@@ -871,6 +892,49 @@
 				"inputs": [
 					{
 						"internalType": "uint256",
+						"name": "index",
+						"type": "uint256"
+					}
+				],
+				"name": "tokenByIndex",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "owner",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "index",
+						"type": "uint256"
+					}
+				],
+				"name": "tokenOfOwnerByIndex",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
 						"name": "tokenId",
 						"type": "uint256"
 					}
@@ -881,6 +945,19 @@
 						"internalType": "string",
 						"name": "",
 						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "totalSupply",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
 					}
 				],
 				"stateMutability": "view",
@@ -938,6 +1015,11 @@
 				"AccessControlUnauthorizedAccount(address,bytes32)": [
 					{
 						"details": "The `account` is missing a role."
+					}
+				],
+				"ERC721EnumerableForbiddenBatchMint()": [
+					{
+						"details": "Batch mint is not allowed."
 					}
 				],
 				"ERC721IncorrectOwner(address,uint256,address)": [
@@ -1005,6 +1087,11 @@
 						"params": {
 							"tokenId": "Identifier number of a token."
 						}
+					}
+				],
+				"ERC721OutOfBoundsIndex(address,uint256)": [
+					{
+						"details": "An `owner`'s token query was out of bounds for `index`. NOTE: The owner being `address(0)` indicates a global out of bounds index."
 					}
 				]
 			},
@@ -1075,8 +1162,17 @@
 				"symbol()": {
 					"details": "Returns the token collection symbol."
 				},
+				"tokenByIndex(uint256)": {
+					"details": "Returns a token ID at a given `index` of all the tokens stored by the contract. Use along with {totalSupply} to enumerate all tokens."
+				},
+				"tokenOfOwnerByIndex(address,uint256)": {
+					"details": "Returns a token ID owned by `owner` at a given `index` of its token list. Use along with {balanceOf} to enumerate all of ``owner``'s tokens."
+				},
 				"tokenURI(uint256)": {
 					"details": "Returns the Uniform Resource Identifier (URI) for `tokenId` token."
+				},
+				"totalSupply()": {
+					"details": "Returns the total amount of tokens stored by the contract."
 				},
 				"transferFrom(address,address,uint256)": {
 					"details": "Transfers `tokenId` token from `from` to `to`. WARNING: Note that the caller is responsible to confirm that the recipient is capable of receiving ERC-721 or else they may be permanently lost. Usage of {safeTransferFrom} prevents loss, though the caller must understand this adds an external call which potentially creates a reentrancy vulnerability. Requirements: - `from` cannot be the zero address. - `to` cannot be the zero address. - `tokenId` token must be owned by `from`. - If the caller is not `from`, it must be approved to move this token by either {approve} or {setApprovalForAll}. Emits a {Transfer} event."
@@ -1088,7 +1184,7 @@
 			"kind": "user",
 			"methods": {
 				"updateEstado(uint256,uint8)": {
-					"notice": "Cambiar el estado de la carta. - Puede cambiarlo el OWNER - O un INSPECTOR"
+					"notice": "Cambiar estado: - owner del token - o INSPECTOR_ROLE"
 				}
 			},
 			"version": 1
@@ -1156,6 +1252,22 @@
 			"urls": [
 				"bzz-raw://8dc7e7ab5b8ea36c15027ab04221b05d1c970f47a53e9fd47ead8ca665d49c7e",
 				"dweb:/ipfs/Qmeeph7fsDyfRr8vb2L8KcDEmKPb224TAayMvgqgGAnqpL"
+			]
+		},
+		"@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol": {
+			"keccak256": "0xe85bdcbce4b8474872045aafb5ed8e3e0a5bd794ded35f76ee9deef25bdc7446",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://60872f2d516e70f06d9684386c6b9c0b9d7ff7f4af257be6087efa2c3bb81937",
+				"dweb:/ipfs/QmdWgPbs2e8SFNNXPFwTt2xD5N8hniehgGCMHUnY1JDcCw"
+			]
+		},
+		"@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol": {
+			"keccak256": "0xaa3852717be1903bf8b8a66c7ce323f70ac93227769c450f2b332fdd16bd9198",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://09ce2e4a5b1064a392594c0d5efeb3ccd8eacf431e55a85574cafb6bfb72ba69",
+				"dweb:/ipfs/QmUbT5UomYpwwMrNMzzuNcGb4sxuMZ4jz8mMPZewX8mEPn"
 			]
 		},
 		"@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol": {
@@ -1239,11 +1351,11 @@
 			]
 		},
 		"NFTCard.sol": {
-			"keccak256": "0xc77a555d5139b79d1603323e7474283d32f67facd6489a9c3cdaa8d6b1c5ef90",
+			"keccak256": "0x7c29817794d98613476498fb0aba971482d0f842c6f06e2cb69047fcb44622ef",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://20134ad71bcb6f865866be435a92ec3305521b55be86c64a418272199fa0a6e9",
-				"dweb:/ipfs/QmUYtXiqaA7MwToykFEPgfFUUgU54rLjei7ktXKLjYumtp"
+				"bzz-raw://f1ead29c5db5194c6eba7eb35bd13dfabf1412f46d4a81b53c34426665f4c28c",
+				"dweb:/ipfs/QmQELXc2tLAf8h1oNb5anUgW63P1pZCviTkxeZvFgY8MfV"
 			]
 		}
 	},
