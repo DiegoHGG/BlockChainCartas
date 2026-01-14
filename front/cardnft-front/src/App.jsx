@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { ethers } from "ethers";
+import MarketTab from "./MarketTab";
 
 /**
  * Dirección del contrato desplegado.
  * ⚠️ Ojo: debe ser la dirección del CONTRATO en ESA MISMA RED donde está MetaMask.
  */
 const CONTRACT_ADDRESS = "0xcab9FA1f1e8C48E8fd926dcE19F9f09B8c3Ea572";
+const NFT_ADDRESS = CONTRACT_ADDRESS; // tu CardNFT
+//TODO CONTRATO CUANDO FUFE
+const MARKET_ADDRESS = "0xD3B97aB82C1Aff42934eA01D6f514B8520B181Ca";
 
 /**
  * ABI mínimo del contrato.
@@ -89,6 +93,8 @@ export default function App() {
    * Detecta si existe window.ethereum (MetaMask)
    */
   const hasEthereum = typeof window !== "undefined" && window.ethereum;
+  //use state para estado del nft que se quiere comprar 
+  const [activeTab, setActiveTab] = useState("nft"); // "nft" | "market"
 
   /**
    * provider (solo lectura): se usa para calls view y getNetwork
@@ -463,6 +469,31 @@ export default function App() {
 
       <div style={{ marginTop: 10, padding: 10, borderRadius: 10, border: "1px solid #ddd" }}>
         <b>Status:</b> {status || "-"}
+      </div>
+      <div style={{ display: "flex", gap: 10, marginTop: 14 }}>
+        <button onClick={() => setActiveTab("nft")} style={{ padding: "10px 14px", cursor: "pointer" }}>
+          NFT (Mint / Leer / Estado)
+        </button>
+        <button onClick={() => setActiveTab("market")} style={{ padding: "10px 14px", cursor: "pointer" }}>
+          Compra / Venta
+        </button>
+      </div>
+
+      <div style={{ marginTop: 16 }}>
+        {activeTab === "nft" ? (
+          <>
+            {/* aquí dejas tu UI actual (Leer/Mint/Update) tal como está */}
+            {/* no hace falta cambiar nada más */}
+          </>
+        ) : (
+          <MarketTab
+            provider={provider}
+            account={account}
+            nftAddress={NFT_ADDRESS}
+            marketAddress={MARKET_ADDRESS}
+            onStatus={setStatus}
+          />
+        )}
       </div>
 
       <hr style={{ margin: "22px 0" }} />

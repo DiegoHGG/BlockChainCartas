@@ -7,9 +7,12 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 contract CardNFTMarketNative is ReentrancyGuard {
     IERC721 public immutable nft;
 
+    // ----------------------------
+    // LISTINGS (venta por ETH)
+    // ----------------------------
     struct Listing {
         address seller;
-        uint256 price; // en ETHLab nativo (wei)
+        uint256 price; // wei
     }
 
     mapping(uint256 => Listing) public listings;
@@ -18,14 +21,53 @@ contract CardNFTMarketNative is ReentrancyGuard {
     event Cancelled(uint256 indexed tokenId, address indexed seller);
     event Bought(uint256 indexed tokenId, address indexed buyer, address indexed seller, uint256 price);
 
+    // ----------------------------
+    // SWAPS (NFT <-> NFT)
+    // ----------------------------
+    struct SwapOffer {
+        address maker;          // quien crea la oferta
+        uint256 offeredTokenId; // token que ofrece
+        uint256 wantedTokenId;  // token que quiere a cambio
+        bool active;
+    }
+
+    // 1 oferta por token ofrecido (modelo simple)
+    mapping(uint256 => SwapOffer) public swapOffers;
+
+    event SwapOffered(address indexed maker, uint256 indexed offeredTokenId, uint256 indexed wantedTokenId);
+    event SwapCancelled(address indexed maker, uint256 indexed offeredTokenId);
+    event SwapAccepted(
+        address indexed taker,
+        address indexed maker,
+        uint256 indexed offeredTokenId,
+        uint256 wantedTokenId
+    );
+
     constructor(address nftAddress) {
         require(nftAddress != address(0), "zero addr");
         nft = IERC721(nftAddress);
     }
 
+    // ============================
+    // Helpers
+    // ============================
+    function _isApprovedOrOwner(address owner, uint256 tokenId) internal view returns (bool) {
+        // Para ERC721 estándar:
+        // - getApproved(tokenId) == address(this)
+        // - isApprovedForAll(owner, address(this)) == true
+        //
+        // IERC721 incluye estas funciones, así que podemos usarlas.
+        return (nft.getApproved(tokenId) == address(this) || nft.isApprovedForAll(owner, address(this)));
+    }
+
+    // ============================
+    // Venta por ETH
+    // ============================
     function list(uint256 tokenId, uint256 price) external {
         require(price > 0, "price=0");
         require(nft.ownerOf(tokenId) == msg.sender, "not owner");
+        // opcional pero recomendado: exigir approval al listar
+        require(_isApprovedOrOwner(msg.sender, tokenId), "market not approved");
 
         listings[tokenId] = Listing({ seller: msg.sender, price: price });
         emit Listed(tokenId, msg.sender, price);
@@ -46,17 +88,77 @@ contract CardNFTMarketNative is ReentrancyGuard {
         require(nft.ownerOf(tokenId) == l.seller, "seller no longer owner");
         require(msg.sender != l.seller, "self buy");
         require(msg.value == l.price, "wrong value");
+        // aseguramos que el market puede transferir
+        require(_isApprovedOrOwner(l.seller, tokenId), "market not approved");
 
         // efectos primero
         delete listings[tokenId];
 
         // 1) pagas al seller
-        (bool ok, ) = payable(l.seller).call{value: msg.value}("");
+        (bool ok, ) = payable(l.seller).call{ value: msg.value }("");
         require(ok, "payment failed");
 
         // 2) transfieres NFT
         nft.safeTransferFrom(l.seller, msg.sender, tokenId);
 
         emit Bought(tokenId, msg.sender, l.seller, msg.value);
+    }
+
+    // ============================
+    // Swap NFT <-> NFT
+    // ============================
+    function offerSwap(uint256 offeredTokenId, uint256 wantedTokenId) external {
+        require(offeredTokenId != wantedTokenId, "same token");
+        require(nft.ownerOf(offeredTokenId) == msg.sender, "not owner offered");
+        // recomendado: exigir approval al crear la oferta (evita ofertas “fake”)
+        require(_isApprovedOrOwner(msg.sender, offeredTokenId), "market not approved offered");
+
+        // (Opcional) Evitar que ofrezcas un token que está listado en venta
+        // si quieres permitir ambos, quita esto.
+        require(listings[offeredTokenId].seller == address(0), "offered token listed");
+
+        swapOffers[offeredTokenId] = SwapOffer({
+            maker: msg.sender,
+            offeredTokenId: offeredTokenId,
+            wantedTokenId: wantedTokenId,
+            active: true
+        });
+
+        emit SwapOffered(msg.sender, offeredTokenId, wantedTokenId);
+    }
+
+    function cancelSwap(uint256 offeredTokenId) external {
+        SwapOffer memory o = swapOffers[offeredTokenId];
+        require(o.active, "not active");
+        require(o.maker == msg.sender, "not maker");
+
+        delete swapOffers[offeredTokenId];
+        emit SwapCancelled(msg.sender, offeredTokenId);
+    }
+
+    function acceptSwap(uint256 offeredTokenId) external nonReentrant {
+        SwapOffer memory o = swapOffers[offeredTokenId];
+        require(o.active, "not active");
+
+        // checks de ownership actuales
+        require(nft.ownerOf(o.offeredTokenId) == o.maker, "maker not owner now");
+        require(nft.ownerOf(o.wantedTokenId) == msg.sender, "taker not owner wanted");
+
+        // checks de approvals para poder transferir ambos tokens
+        require(_isApprovedOrOwner(o.maker, o.offeredTokenId), "market not approved offered");
+        require(_isApprovedOrOwner(msg.sender, o.wantedTokenId), "market not approved wanted");
+
+        // (Opcional) Evitar aceptar swap si alguno está listado en venta
+        require(listings[o.offeredTokenId].seller == address(0), "offered token listed");
+        require(listings[o.wantedTokenId].seller == address(0), "wanted token listed");
+
+        // efectos primero
+        delete swapOffers[offeredTokenId];
+
+        // intercambio atómico: si cualquiera revierte, toda la tx revierte
+        nft.safeTransferFrom(o.maker, msg.sender, o.offeredTokenId);
+        nft.safeTransferFrom(msg.sender, o.maker, o.wantedTokenId);
+
+        emit SwapAccepted(msg.sender, o.maker, o.offeredTokenId, o.wantedTokenId);
     }
 }

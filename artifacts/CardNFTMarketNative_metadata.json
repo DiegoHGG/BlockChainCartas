@@ -92,6 +92,94 @@
 				"type": "event"
 			},
 			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "taker",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "maker",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "offeredTokenId",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "wantedTokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "SwapAccepted",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "maker",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "offeredTokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "SwapCancelled",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "maker",
+						"type": "address"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "offeredTokenId",
+						"type": "uint256"
+					},
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "wantedTokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "SwapOffered",
+				"type": "event"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "offeredTokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "acceptSwap",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
 				"inputs": [
 					{
 						"internalType": "uint256",
@@ -113,6 +201,19 @@
 					}
 				],
 				"name": "cancel",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "offeredTokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "cancelSwap",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -171,6 +272,58 @@
 				],
 				"stateMutability": "view",
 				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "offeredTokenId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "wantedTokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "offerSwap",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "swapOffers",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "maker",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "offeredTokenId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "wantedTokenId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bool",
+						"name": "active",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
 			}
 		],
 		"devdoc": {
@@ -188,7 +341,7 @@
 		"compilationTarget": {
 			"contratoTransaccion.sol": "CardNFTMarketNative"
 		},
-		"evmVersion": "prague",
+		"evmVersion": "london",
 		"libraries": {},
 		"metadata": {
 			"bytecodeHash": "ipfs"
@@ -225,11 +378,11 @@
 			]
 		},
 		"contratoTransaccion.sol": {
-			"keccak256": "0x3751b5acb81f837dda976452c9570450b53f9af61fb74d657466f0703cf6e5fd",
+			"keccak256": "0x4bbcd3e02d72d9c5b3cecb99a79abd102dc8fbcdbb438dc28d5444ad27740586",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://4fc0eb72acd1a2587bb42107c2e2b79f9f3c4ab1d36cae0eb351e577e9ae128d",
-				"dweb:/ipfs/QmamoMLKr2Tz3kQS1mLCJxx52uDSQ3RtJkj8fMiGVCTTXX"
+				"bzz-raw://a023b69e056b7a7d78c95bdcee1bd19ff1738fb2fd4ffc46d8f0722dae31c7ac",
+				"dweb:/ipfs/QmRTXM9a8dM6brDMS6Tr3in9fsY8xUuC5oaDxLLp8f97qi"
 			]
 		}
 	},
