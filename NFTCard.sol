@@ -64,7 +64,7 @@ contract CardNFT is ERC721, ERC721Enumerable, AccessControl {
         uint256 numero,
         string calldata rareza,
         Estado estadoInicial
-    ) external onlyRole(MINTER_ROLE) returns (uint256 tokenId) {
+    ) external returns (uint256 tokenId) {
         require(to != address(0), "to=0");
 
         tokenId = nextTokenId++;

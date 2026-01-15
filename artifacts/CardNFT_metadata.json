@@ -1351,11 +1351,11 @@
 			]
 		},
 		"NFTCard.sol": {
-			"keccak256": "0x7c29817794d98613476498fb0aba971482d0f842c6f06e2cb69047fcb44622ef",
+			"keccak256": "0xa9ef5f327d1b5acd0fd3ced27ce286a5933fc90ca9ff092dfe3ac7bce251780d",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://f1ead29c5db5194c6eba7eb35bd13dfabf1412f46d4a81b53c34426665f4c28c",
-				"dweb:/ipfs/QmQELXc2tLAf8h1oNb5anUgW63P1pZCviTkxeZvFgY8MfV"
+				"bzz-raw://3d8c56efc7f58014001bca1755f90e3e9a26deda0796dcc0f3c7b03fbbad915d",
+				"dweb:/ipfs/Qmd1hkLaEdJSLuXMtQAra67cFy45ZA3ept2bqBzMGhTaNg"
 			]
 		}
 	},

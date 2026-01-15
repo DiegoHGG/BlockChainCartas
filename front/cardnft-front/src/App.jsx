@@ -10,8 +10,8 @@ import InspectorView from "./views/InspectorView";
 
 import styles from "./App.module.css";
 
-const NFT_ADDRESS = "0xa9AAd51507Bee07E39391Ddaeb28F4647A7e9965";
-const MARKET_ADDRESS = "0xa56dC5448e3C94a6dCEF913f14D7Ab5D4Fcb181D";
+const NFT_ADDRESS = "0x08c4C79461488aE9C60F614c555b365F2D00210E";
+const MARKET_ADDRESS = "0x01ed7825c79b0E9Df87e828500c199DaBc4daDFD";
 
 const ACCESS_ABI = ["function hasRole(bytes32 role, address account) view returns (bool)"];
 
@@ -245,7 +245,7 @@ export default function App() {
                 account={account}
                 nftAddress={NFT_ADDRESS}
                 marketAddress={MARKET_ADDRESS}
-                canMint={isMinter}
+                canMint={True}
                 onStatus={setStatus}
               />
             )}
