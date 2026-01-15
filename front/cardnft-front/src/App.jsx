@@ -245,7 +245,7 @@ export default function App() {
                 account={account}
                 nftAddress={NFT_ADDRESS}
                 marketAddress={MARKET_ADDRESS}
-                canMint={True}
+                canMint={true}
                 onStatus={setStatus}
               />
             )}
