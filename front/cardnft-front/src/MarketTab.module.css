@@ -217,3 +217,108 @@
 .muted {
   opacity: 0.75;
 }
+.resultsGrid{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+@media (max-width: 900px){
+  .resultsGrid{ grid-template-columns: 1fr; }
+}
+
+.holoCard{
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.holoInner{
+  padding: 14px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(245,247,255,0.92));
+  border: 1px solid rgba(226,232,240,0.9);
+  min-height: 260px;
+  display:flex;
+  flex-direction:column;
+  gap: 10px;
+}
+
+.holoHeader{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.holoTitle{
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  font-size: 16px;
+  color:#0f172a;
+}
+.holoSub{
+  margin-top: 4px;
+  font-size: 12.5px;
+  color:#475569;
+}
+
+.holoPrice{
+  text-align:right;
+}
+.holoPriceLabel{
+  font-size: 11px;
+  color:#64748b;
+}
+.holoPriceValue{
+  font-weight: 900;
+  font-size: 14px;
+  color:#0f172a;
+}
+
+.holoArt{
+  flex: 1;
+  border-radius: 14px;
+  border: 1px dashed rgba(148,163,184,0.7);
+  background: radial-gradient(circle at 20% 20%, rgba(99,102,241,0.18), transparent 45%),
+              radial-gradient(circle at 80% 20%, rgba(236,72,153,0.18), transparent 45%),
+              radial-gradient(circle at 50% 90%, rgba(34,197,94,0.16), transparent 50%),
+              rgba(255,255,255,0.6);
+  display:flex;
+  align-items:flex-end;
+  justify-content:flex-start;
+  padding: 10px;
+}
+
+.holoArtBadge{
+  font-size: 12px;
+  font-weight: 800;
+  color:#0f172a;
+  background: rgba(255,255,255,0.75);
+  border: 1px solid rgba(226,232,240,0.9);
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+
+.holoMeta{
+  display:grid;
+  gap: 4px;
+  font-size: 12.5px;
+  color:#334155;
+}
+
+.holoActions{
+  display:flex;
+  justify-content:flex-end;
+}
+
+.buyBtn{
+  appearance:none;
+  border: 1px solid #1d4ed8;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 900;
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.buyBtn:hover{
+  filter: brightness(0.98);
+}

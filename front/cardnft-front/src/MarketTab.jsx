@@ -2,6 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { ethers } from "ethers";
 import styles from "./MarketTab.module.css";
 
+// ✅ Reutilizamos el MISMO CSS + layout que MyTokens
+import tokStyles from "./components/MyTokens.module.css";
+import { HoloCard } from "react-holo-card-effect";
+
 const ESTADOS = ["UNKNOWN", "POOR", "PLAYED", "GOOD", "NEAR_MINT", "MINT", "GRADED"];
 
 function shortAddr(a) {
@@ -13,7 +17,6 @@ function normalizeExpansion(x) {
   return (x || "").trim().toUpperCase();
 }
 
-// Acepta "1", "001", "0001" -> 1
 function normalizeNumber(x) {
   const s = (x || "").trim();
   if (!s) return null;
@@ -22,16 +25,73 @@ function normalizeNumber(x) {
   return n;
 }
 
+function pad3(n) {
+  return String(n).padStart(3, "0");
+}
+
+/**
+ * ✅ MISMA lógica que MyTokens:
+ * - id = "OP09-001"
+ * - prueba /cards/OP09-001.webp/.png/.jpg/.jpeg
+ */
+function buildImageCandidates(expansion, numero) {
+  const id = `${normalizeExpansion(expansion)}-${pad3(numero)}`; // OP09-001
+  return [
+    `/cards/${id}.webp`,
+    `/cards/${id}.png`,
+    `/cards/${id}.jpg`,
+    `/cards/${id}.jpeg`,
+  ];
+}
+
+function CardPreview({ expansion, numero, className }) {
+  const [resolvedUrl, setResolvedUrl] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function resolveUrl() {
+      setResolvedUrl(null);
+
+      const candidates = buildImageCandidates(expansion, Number(numero));
+
+      for (const url of candidates) {
+        const ok = await new Promise((r) => {
+          const img = new Image();
+          img.onload = () => r(true);
+          img.onerror = () => r(false);
+          img.src = url;
+        });
+
+        if (!cancelled && ok) {
+          setResolvedUrl(url);
+          return;
+        }
+      }
+    }
+
+    resolveUrl();
+    return () => {
+      cancelled = true;
+    };
+  }, [expansion, numero]);
+
+  if (!resolvedUrl) return null;
+
+  return (
+    <div className={className}>
+      <HoloCard url={resolvedUrl} width={190} height={260} showSparkles />
+    </div>
+  );
+}
+
 export default function MarketTab({ provider, account, nftAddress, marketAddress, onStatus }) {
   const [loading, setLoading] = useState(false);
+  const [tokens, setTokens] = useState([]);
 
-  // Filtros de búsqueda
+  // buscador
   const [expansion, setExpansion] = useState("OP09");
-  const [cardNumber, setCardNumber] = useState(""); // opcional (ej: 1 o 001)
-  const [onlyListed, setOnlyListed] = useState(true);
-
-  // Resultados
-  const [results, setResults] = useState([]);
+  const [numero, setNumero] = useState(""); // opcional
 
   function setStatus(msg) {
     onStatus?.(msg);
@@ -42,10 +102,9 @@ export default function MarketTab({ provider, account, nftAddress, marketAddress
       // Enumerable
       "function totalSupply() view returns (uint256)",
       "function tokenByIndex(uint256 index) view returns (uint256)",
-      // Metadata custom
+
+      // custom data
       "function getCard(uint256 tokenId) view returns (address owner,string juego,string expansion,uint256 numero,string rareza,uint8 estado,uint64 updatedAt)",
-      // Ownership (por si acaso)
-      "function ownerOf(uint256 tokenId) view returns (address)",
     ],
     []
   );
@@ -68,64 +127,40 @@ export default function MarketTab({ provider, account, nftAddress, marketAddress
     return new ethers.Contract(marketAddress, MARKET_ABI, provider);
   }, [provider, marketAddress, MARKET_ABI]);
 
-  async function buy(tokenId, priceWei) {
+  async function loadSales() {
     try {
-      if (!provider) return;
-      const signer = await provider.getSigner();
-      const market = new ethers.Contract(marketAddress, MARKET_ABI, signer);
-
-      setStatus(`📝 Comprando token ${tokenId}...`);
-      const tx = await market.buy(BigInt(tokenId), { value: BigInt(priceWei) });
-      setStatus("⏳ Buy enviado, esperando confirmación...");
-      await tx.wait();
-      setStatus(`✅ Compra confirmada: token ${tokenId}`);
-
-      // refrescar resultados
-      await search();
-    } catch (e) {
-      console.error(e);
-      setStatus(`❌ Buy falló: ${e?.shortMessage ?? e?.message ?? e}`);
-    }
-  }
-
-  async function search() {
-    try {
-      if (!nftRead || !marketRead) {
-        setStatus("❌ Provider/contratos no listos.");
-        return;
-      }
+      if (!nftRead || !marketRead) return;
 
       const exp = normalizeExpansion(expansion);
+      const num = normalizeNumber(numero);
+
       if (!exp) {
-        setStatus("⚠️ Escribe una expansión (ej: OP09).");
+        setStatus("⚠️ Pon una expansión (ej: OP09).");
         return;
       }
 
-      const num = normalizeNumber(cardNumber); // null si vacío
       setLoading(true);
-      setResults([]);
-      setStatus("Buscando tokens...");
+      setTokens([]);
+      setStatus("Cargando ventas...");
 
       const supply = await nftRead.totalSupply();
       const total = Number(supply);
 
-      // 🔧 Para demos va perfecto. Si crece mucho, luego optimizamos por batches/índices on-chain.
       const rows = [];
+
       for (let i = 0; i < total; i++) {
         const tokenId = await nftRead.tokenByIndex(i);
         const idStr = tokenId.toString();
 
-        // Leer card
         const data = await nftRead.getCard(tokenId);
 
         const cardExp = normalizeExpansion(data[2]);
         const cardNum = Number(data[3]);
 
-        // Filtro por expansión/número
         if (cardExp !== exp) continue;
         if (num !== null && cardNum !== num) continue;
 
-        // Listing info
+        // listing
         let listing = { seller: ethers.ZeroAddress, price: 0n };
         try {
           listing = await marketRead.listings(tokenId);
@@ -133,9 +168,8 @@ export default function MarketTab({ provider, account, nftAddress, marketAddress
           // ignore
         }
 
-        const isListed = listing?.seller && listing.seller !== ethers.ZeroAddress;
-
-        if (onlyListed && !isListed) continue;
+        const listed = listing?.seller && listing.seller !== ethers.ZeroAddress;
+        if (!listed) continue; // ✅ Ventas = solo listados
 
         rows.push({
           tokenId: idStr,
@@ -146,42 +180,63 @@ export default function MarketTab({ provider, account, nftAddress, marketAddress
           rareza: data[4],
           estado: Number(data[5]),
           updatedAt: Number(data[6]),
-          listingSeller: listing?.seller ?? ethers.ZeroAddress,
-          listingPrice: listing?.price ?? 0n,
-          isListed,
+          listingSeller: listing.seller,
+          listingPrice: listing.price ?? 0n,
         });
       }
 
-      setResults(rows);
-      setStatus(`✅ Encontrados ${rows.length} token(s) para ${exp}${num !== null ? `-${String(num).padStart(3, "0")}` : ""}${onlyListed ? " (solo listados)" : ""}.`);
+      setTokens(rows);
+      setStatus(`✅ Ventas encontradas: ${rows.length}`);
     } catch (e) {
       console.error(e);
-      setStatus(`❌ Error buscando: ${e?.shortMessage ?? e?.message ?? e}`);
+      setStatus(`❌ Error cargando ventas: ${e?.shortMessage ?? e?.message ?? e}`);
     } finally {
       setLoading(false);
     }
   }
 
-  // Auto-buscar cuando entras (opcional)
+  async function buyToken(tokenId, priceWei) {
+    try {
+      if (!provider) return;
+      const signer = await provider.getSigner();
+      const market = new ethers.Contract(marketAddress, MARKET_ABI, signer);
+
+      setStatus(`📝 Comprando token ${tokenId}...`);
+      const tx = await market.buy(BigInt(tokenId), { value: BigInt(priceWei) });
+      setStatus("⏳ Buy enviado, esperando confirmación...");
+      await tx.wait();
+      setStatus("✅ Compra confirmada.");
+
+      await loadSales();
+    } catch (e) {
+      console.error(e);
+      setStatus(`❌ Error buy: ${e?.shortMessage ?? e?.message ?? e}`);
+    }
+  }
+
+  // auto-load al entrar si hay provider
   useEffect(() => {
-    if (nftRead && marketRead) search();
+    if (nftRead && marketRead) loadSales();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nftRead, marketRead]);
 
   return (
-    <div className={styles.wrapper}>
-      <h2 className={styles.title}>Ventas</h2>
+    <section className={`card ${tokStyles.wrapper}`}>
+      <div className={tokStyles.headerRow}>
+        <div>
+          <h2 className="cardTitle" style={{ margin: 0 }}>Ventas</h2>
+          <div className="cardSubtitle" style={{ margin: "6px 0 0 0" }}>
+            Tokens listados en el market (filtra por expansión y número).
+          </div>
+        </div>
 
-      <div className={styles.addrGrid}>
-        <div className={styles.addrRow}>
-          <b>NFT:</b> <span className={styles.code}>{nftAddress || "-"}</span>
-        </div>
-        <div className={styles.addrRow}>
-          <b>Market:</b> <span className={styles.code}>{marketAddress || "-"}</span>
-        </div>
+        <button className="btn" onClick={loadSales} disabled={loading}>
+          {loading ? "Cargando..." : "Refrescar"}
+        </button>
       </div>
 
-      <div className={styles.searchRow}>
+      {/* Buscador */}
+      <div className={styles.formRow} style={{ marginTop: 10 }}>
         <div className={styles.field}>
           <div className={styles.label}>Expansión</div>
           <input
@@ -196,88 +251,77 @@ export default function MarketTab({ provider, account, nftAddress, marketAddress
           <div className={styles.label}>Número (opcional)</div>
           <input
             className={styles.input}
-            value={cardNumber}
-            onChange={(e) => setCardNumber(e.target.value)}
+            value={numero}
+            onChange={(e) => setNumero(e.target.value)}
             placeholder="001 (o vacío)"
           />
         </div>
 
-        <label className={styles.check}>
-          <input
-            type="checkbox"
-            checked={onlyListed}
-            onChange={(e) => setOnlyListed(e.target.checked)}
-          />
-          <span>Solo listados</span>
-        </label>
-
         <div className={styles.actionsInline}>
-          <button className={styles.btn} onClick={search} disabled={loading}>
-            {loading ? "Buscando..." : "Buscar"}
+          <button className={styles.btn} onClick={loadSales} disabled={loading}>
+            Buscar
           </button>
         </div>
       </div>
 
-      <hr className={styles.hr} />
-
       {!account ? (
-        <div className={styles.hint}>Conecta MetaMask para comprar.</div>
-      ) : results.length === 0 ? (
-        <div className={styles.hint}>
-          No hay resultados para esos filtros{onlyListed ? " (o no hay ventas)" : ""}.
-        </div>
+        <div className="help">Conecta MetaMask para comprar.</div>
+      ) : tokens.length === 0 ? (
+        <div className="help">No hay ventas con esos filtros.</div>
       ) : (
-        <div className={styles.resultsGrid}>
-          {results.map((t) => {
-            const priceEth = t.isListed ? ethers.formatEther(t.listingPrice) : "";
+        <div className={tokStyles.grid}>
+          {tokens.map((t) => {
+            const priceEth = ethers.formatEther(t.listingPrice);
 
             return (
-              <div key={t.tokenId} className={styles.tokenCard}>
-                <div className={styles.top}>
-                  <div>
-                    <div className={styles.tokenId}>Token #{t.tokenId}</div>
-                    <div className={styles.metaLine}>
-                      {t.juego} · {t.expansion} · #{t.numero} · {t.rareza}
-                    </div>
+              <div key={t.tokenId} className={tokStyles.tokenCard}>
+                <div className={tokStyles.top}>
+                  {/* ✅ EXACTO como MyTokens: preview + info */}
+                  <div className={tokStyles.leftBlock}>
+                    <CardPreview
+                      expansion={t.expansion}
+                      numero={t.numero}
+                      className={tokStyles.previewWrap}
+                    />
 
-                    <div style={{ marginTop: 8 }}>
-                      <span className={styles.estado}>
-                        {ESTADOS[t.estado] ?? "?"}
-                      </span>
+                    <div className={tokStyles.infoBlock}>
+                      <div className={tokStyles.tokenId}>Token #{t.tokenId}</div>
+                      <div className="subtle" style={{ marginTop: 4 }}>
+                        {t.juego} · {t.expansion} · #{t.numero} · {t.rareza}
+                      </div>
+                      <div style={{ marginTop: 8 }}>
+                        <span className={tokStyles.estado}>
+                          {ESTADOS[t.estado] ?? "?"}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
                   <div style={{ textAlign: "right" }}>
-                    <div className={styles.small}>Owner</div>
-                    <div className={styles.mono}>{shortAddr(t.owner)}</div>
+                    <div className="small">Seller</div>
+                    <div className="mono">{shortAddr(t.listingSeller)}</div>
                   </div>
                 </div>
 
-                {t.isListed ? (
-                  <div className={styles.actions}>
-                    <div className={styles.listedPill}>
-                      Precio: <b>{priceEth} ETH</b>
-                    </div>
+                <div className={tokStyles.actions}>
+                  <div className={tokStyles.listedPill}>
+                    Listado: <b>{priceEth} ETH</b>
+                  </div>
 
-                    <button
-                      className={`${styles.btn} ${styles.btnPrimary}`}
-                      onClick={() => buy(t.tokenId, t.listingPrice)}
-                      disabled={loading}
-                      title="Comprar (envía ETH nativo)"
-                    >
-                      Comprar
-                    </button>
-                  </div>
-                ) : (
-                  <div className={styles.warning}>
-                    ⚠️ Este token no está listado ahora mismo.
-                  </div>
-                )}
+                  <button
+                    className="btn btnPrimary"
+                    onClick={() => buyToken(t.tokenId, t.listingPrice)}
+                    disabled={loading}
+                    title="Comprar (envía ETH nativo)"
+                  >
+                    Comprar
+                  </button>
+                </div>
               </div>
             );
           })}
         </div>
       )}
-    </div>
+    </section>
   );
 }
