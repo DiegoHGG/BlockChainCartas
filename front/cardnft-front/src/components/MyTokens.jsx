@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ethers } from "ethers";
 import styles from "./MyTokens.module.css";
+import { HoloCard } from "react-holo-card-effect";
 
 // ABI mínimo del NFT (Enumerable + approve + getCard)
 const NFT_ABI = [
@@ -25,6 +26,60 @@ const ESTADOS = ["UNKNOWN", "POOR", "PLAYED", "GOOD", "NEAR_MINT", "MINT", "GRAD
 function shortAddr(a) {
   if (!a) return "";
   return `${a.slice(0, 6)}...${a.slice(-4)}`;
+}
+function pad3(n) {
+  return String(n).padStart(3, "0");
+}
+
+function buildImageCandidates(expansion, numero) {
+  const id = `${expansion}-${pad3(numero)}`; // OP09-001
+  return [
+    `/cards/${id}.webp`,
+    `/cards/${id}.png`,
+    `/cards/${id}.jpg`,
+    `/cards/${id}.jpeg`,
+  ];
+}
+
+function CardPreview({ expansion, numero, className }) {
+  const [resolvedUrl, setResolvedUrl] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function resolveUrl() {
+      setResolvedUrl(null);
+
+      const candidates = buildImageCandidates(expansion, numero);
+
+      for (const url of candidates) {
+        const ok = await new Promise((r) => {
+          const img = new Image();
+          img.onload = () => r(true);
+          img.onerror = () => r(false);
+          img.src = url;
+        });
+
+        if (!cancelled && ok) {
+          setResolvedUrl(url);
+          return;
+        }
+      }
+    }
+
+    resolveUrl();
+    return () => {
+      cancelled = true;
+    };
+  }, [expansion, numero]);
+
+  if (!resolvedUrl) return null;
+
+  return (
+    <div className={className}>
+      <HoloCard url={resolvedUrl} width={190} height={260} showSparkles />
+    </div>
+  );
 }
 
 export default function MyTokens({ provider, account, nftAddress, marketAddress, onStatus }) {
@@ -199,15 +254,21 @@ export default function MyTokens({ provider, account, nftAddress, marketAddress,
             return (
               <div key={t.tokenId} className={styles.tokenCard}>
                 <div className={styles.top}>
-                  <div>
-                    <div className={styles.tokenId}>Token #{t.tokenId}</div>
-                    <div className="subtle" style={{ marginTop: 4 }}>
-                      {t.juego} · {t.expansion} · #{t.numero} · {t.rareza}
-                    </div>
-                    <div style={{ marginTop: 8 }}>
-                      <span className={styles.estado}>
-                        {ESTADOS[t.estado] ?? "?"}
-                      </span>
+                  <div className={styles.leftBlock}>
+                    <CardPreview
+                      expansion={t.expansion}
+                      numero={t.numero}
+                      className={styles.previewWrap}
+                    />
+
+                    <div className={styles.infoBlock}>
+                      <div className={styles.tokenId}>Token #{t.tokenId}</div>
+                      <div className="subtle" style={{ marginTop: 4 }}>
+                        {t.juego} · {t.expansion} · #{t.numero} · {t.rareza}
+                      </div>
+                      <div style={{ marginTop: 8 }}>
+                        <span className={styles.estado}>{ESTADOS[t.estado] ?? "?"}</span>
+                      </div>
                     </div>
                   </div>
 
@@ -216,6 +277,7 @@ export default function MyTokens({ provider, account, nftAddress, marketAddress,
                     <div className="mono">{shortAddr(t.owner)}</div>
                   </div>
                 </div>
+
 
                 <div className={styles.actions}>
                   <button

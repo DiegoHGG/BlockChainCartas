@@ -65,3 +65,26 @@
   font-weight: 700;
   color: #374151;
 }
+.leftBlock {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.previewWrap {
+  flex: 0 0 auto;
+  width: 190px;
+}
+
+.infoBlock {
+  min-width: 0;
+}
+
+@media (max-width: 520px) {
+  .leftBlock {
+    flex-direction: column;
+  }
+  .previewWrap {
+    width: 100%;
+  }
+}
