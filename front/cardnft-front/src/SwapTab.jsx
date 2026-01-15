@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ethers } from "ethers";
+import styles from "./SwapTab.module.css";
 
 export default function SwapTab({ provider, account, nftAddress, marketAddress, onStatus }) {
   const [marketWrite, setMarketWrite] = useState(null);
@@ -203,98 +204,144 @@ export default function SwapTab({ provider, account, nftAddress, marketAddress, 
     readApprovals();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [marketRead, nftRead, offeredBig, wantedBig, account]);
+return (
+  <div className={styles.wrapper}>
+    <h2 className={styles.title}>Swap (NFT ↔ NFT)</h2>
 
-  return (
-    <div style={{ padding: 14, border: "1px solid #ddd", borderRadius: 14 }}>
-      <h2 style={{ marginTop: 0 }}>Swap (NFT ↔ NFT)</h2>
+    <div className={styles.addrGrid}>
+      <div className={styles.addrRow}>
+        <b>NFT:</b> <span className={styles.code}>{nftAddress || "-"}</span>
+      </div>
+      <div className={styles.addrRow}>
+        <b>Market:</b> <span className={styles.code}>{marketAddress || "-"}</span>
+      </div>
+    </div>
 
-      <div style={{ marginBottom: 10, opacity: 0.8 }}>
-        <div><b>NFT:</b> <code>{nftAddress || "-"}</code></div>
-        <div><b>Market:</b> <code>{marketAddress || "-"}</code></div>
+    <div className={styles.formRow}>
+      <div className={styles.field}>
+        <div className={styles.label}>Offered tokenId</div>
+        <input
+          className={styles.input}
+          value={offeredTokenId}
+          onChange={(e) => setOfferedTokenId(e.target.value)}
+        />
       </div>
 
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-        <label>
-          Offered tokenId:&nbsp;
-          <input value={offeredTokenId} onChange={(e) => setOfferedTokenId(e.target.value)} style={{ padding: 8, width: 160 }} />
-        </label>
+      <div className={styles.field}>
+        <div className={styles.label}>Wanted tokenId</div>
+        <input
+          className={styles.input}
+          value={wantedTokenId}
+          onChange={(e) => setWantedTokenId(e.target.value)}
+        />
+      </div>
 
-        <label>
-          Wanted tokenId:&nbsp;
-          <input value={wantedTokenId} onChange={(e) => setWantedTokenId(e.target.value)} style={{ padding: 8, width: 160 }} />
-        </label>
-
-        <button onClick={readOffer} style={{ padding: "10px 14px", cursor: "pointer" }}>
+      <div className={styles.actionsInline}>
+        <button className={styles.btn} onClick={readOffer}>
           Read offer
         </button>
-
-        <button onClick={readApprovals} style={{ padding: "10px 14px", cursor: "pointer" }}>
+        <button className={styles.btn} onClick={readApprovals}>
           Read approvals
         </button>
       </div>
+    </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
-        <div style={{ padding: 12, borderRadius: 12, border: "1px solid #eee", background: "#fafafa" }}>
-          <b>Offer info</b>
-          {!offerInfo ? (
-            <div style={{ opacity: 0.7, marginTop: 6 }}>Sin datos todavía.</div>
-          ) : (
-            <div style={{ marginTop: 6 }}>
-              <div><b>active:</b> {String(offerInfo.active)}</div>
-              <div><b>maker:</b> {offerInfo.maker}</div>
-              <div><b>offeredTokenId:</b> {offerInfo.offeredTokenId}</div>
-              <div><b>wantedTokenId:</b> {offerInfo.wantedTokenId}</div>
+    <div className={styles.grid2}>
+      <div className={styles.card}>
+        <div className={styles.cardTitle}>Offer info</div>
+
+        {!offerInfo ? (
+          <div className={styles.muted}>Sin datos todavía.</div>
+        ) : (
+          <div className={styles.kv}>
+            <div className={styles.kvRow}>
+              <div className={styles.kvKey}>active</div>
+              <div className={styles.kvVal}>
+                <span className={`${styles.pill} ${offerInfo.active ? styles.pillOk : styles.pillOff}`}>
+                  {offerInfo.active ? "ACTIVE" : "INACTIVE"}
+                </span>
+              </div>
             </div>
-          )}
-        </div>
 
-        <div style={{ padding: 12, borderRadius: 12, border: "1px solid #eee", background: "#fafafa" }}>
-          <b>Approvals (tu cuenta actual)</b>
-          <div style={{ marginTop: 6 }}>
-            <div style={{ opacity: 0.8 }}><b>Offered</b></div>
-            <div>getApproved: {approvalOffered?.approved ?? "-"}</div>
-            <div>approvedForAll: {approvalOffered ? String(approvalOffered.approvedForAll) : "-"}</div>
-
-            <div style={{ marginTop: 10, opacity: 0.8 }}><b>Wanted</b></div>
-            <div>getApproved: {approvalWanted?.approved ?? "-"}</div>
-            <div>approvedForAll: {approvalWanted ? String(approvalWanted.approvedForAll) : "-"}</div>
-
-            <div style={{ marginTop: 10, opacity: 0.75 }}>
-              💡 Para crear/aceptar swap, cada owner debe aprobar al market su token (o approvalForAll).
+            <div className={styles.kvRow}>
+              <div className={styles.kvKey}>maker</div>
+              <div className={styles.kvVal}>{offerInfo.maker}</div>
             </div>
+
+            <div className={styles.kvRow}>
+              <div className={styles.kvKey}>offeredTokenId</div>
+              <div className={styles.kvVal}>{offerInfo.offeredTokenId}</div>
+            </div>
+
+            <div className={styles.kvRow}>
+              <div className={styles.kvKey}>wantedTokenId</div>
+              <div className={styles.kvVal}>{offerInfo.wantedTokenId}</div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className={styles.card}>
+        <div className={styles.cardTitle}>Approvals (tu cuenta actual)</div>
+
+        <div className={styles.kv}>
+          <div className={styles.kvRow}>
+            <div className={styles.kvKey}>Offered getApproved</div>
+            <div className={styles.kvVal}>{approvalOffered?.approved ?? "-"}</div>
+          </div>
+          <div className={styles.kvRow}>
+            <div className={styles.kvKey}>Offered approvedForAll</div>
+            <div className={styles.kvVal}>{approvalOffered ? String(approvalOffered.approvedForAll) : "-"}</div>
+          </div>
+
+          <div className={styles.hr} />
+
+          <div className={styles.kvRow}>
+            <div className={styles.kvKey}>Wanted getApproved</div>
+            <div className={styles.kvVal}>{approvalWanted?.approved ?? "-"}</div>
+          </div>
+          <div className={styles.kvRow}>
+            <div className={styles.kvKey}>Wanted approvedForAll</div>
+            <div className={styles.kvVal}>{approvalWanted ? String(approvalWanted.approvedForAll) : "-"}</div>
+          </div>
+
+          <div className={styles.hint}>
+            💡 Para crear/aceptar swap, cada owner debe aprobar al market su token (o approvalForAll).
           </div>
         </div>
       </div>
-
-      <hr style={{ margin: "18px 0" }} />
-
-      <h3 style={{ margin: "0 0 10px 0" }}>Acciones</h3>
-
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-        <button onClick={approveOffered} style={{ padding: "10px 14px", cursor: "pointer" }}>
-          approve offered
-        </button>
-
-        <button onClick={approveWanted} style={{ padding: "10px 14px", cursor: "pointer" }}>
-          approve wanted
-        </button>
-
-        <button onClick={offerSwap} style={{ padding: "10px 14px", cursor: "pointer" }}>
-          offerSwap(offered, wanted)
-        </button>
-
-        <button onClick={acceptSwap} style={{ padding: "10px 14px", cursor: "pointer" }}>
-          acceptSwap(offered)
-        </button>
-
-        <button onClick={cancelSwap} style={{ padding: "10px 14px", cursor: "pointer" }}>
-          cancelSwap(offered)
-        </button>
-      </div>
-
-      <div style={{ marginTop: 10, opacity: 0.75 }}>
-        ✅ Flujo típico: owner(A) aprueba + offerSwap → owner(B) aprueba + acceptSwap.
-      </div>
     </div>
-  );
+
+    <hr className={styles.hr} />
+
+    <h3 className={styles.sectionTitle}>Acciones</h3>
+
+    <div className={styles.btnRow}>
+      <button className={`${styles.btn} ${styles.btnSuccess}`} onClick={approveOffered}>
+        approve offered
+      </button>
+
+      <button className={`${styles.btn} ${styles.btnSuccess}`} onClick={approveWanted}>
+        approve wanted
+      </button>
+
+      <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={offerSwap}>
+        offerSwap(offered, wanted)
+      </button>
+
+      <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={acceptSwap}>
+        acceptSwap(offered)
+      </button>
+
+      <button className={`${styles.btn} ${styles.btnDanger}`} onClick={cancelSwap}>
+        cancelSwap(offered)
+      </button>
+    </div>
+
+    <div className={styles.hint}>
+      ✅ Flujo típico: owner(A) aprueba + offerSwap → owner(B) aprueba + acceptSwap.
+    </div>
+  </div>
+);
+
 }

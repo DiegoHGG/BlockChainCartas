@@ -1,6 +1,6 @@
 {
   "name": "CardNFTMarketNative",
-  "address": "0xd3b97ab82c1aff42934ea01d6f514b8520b181ca",
+  "address": "0xa56dc5448e3c94a6dcef913f14d7ab5d4fcb181d",
   "abi": [
     {
       "inputs": [
@@ -324,5 +324,5 @@
     }
   ],
   "filePath": "electron/contratoTransaccion.sol",
-  "pinnedAt": 1768408577082
+  "pinnedAt": 1768472661738
 }

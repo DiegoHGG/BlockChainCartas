@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ethers } from "ethers";
+import styles from "./MarketTab.module.css";
 
 /**
  * MarketTab
@@ -310,75 +311,138 @@ export default function MarketTab({
   );
 
   return (
-    <div style={{ padding: 14, border: "1px solid #ddd", borderRadius: 14 }}>
-      <h2 style={{ marginTop: 0 }}>Compra / Venta (Market)</h2>
+    <div className={styles.wrapper}>
+      <h2 className={styles.title}>Compra / Venta (Market)</h2>
 
-      <div style={{ marginBottom: 10, opacity: 0.8 }}>
-        <div><b>NFT:</b> <code>{nftAddress || "-"}</code></div>
-        <div><b>Market:</b> <code>{marketAddress || "-"}</code></div>
+      <div className={styles.addrGrid}>
+        <div className={styles.addrRow}>
+          <b>NFT:</b> <span className={styles.code}>{nftAddress || "-"}</span>
+        </div>
+        <div className={styles.addrRow}>
+          <b>Market:</b> <span className={styles.code}>{marketAddress || "-"}</span>
+        </div>
       </div>
 
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-        <label>
-          TokenId:&nbsp;
+      <div className={styles.formRow}>
+        <div className={styles.field}>
+          <div className={styles.label}>TokenId</div>
           <input
+            className={styles.input}
             value={tokenId}
             onChange={(e) => setTokenId(e.target.value)}
-            style={{ padding: 8, width: 140 }}
           />
-        </label>
+        </div>
 
-        <label>
-          Precio (ETH):&nbsp;
+        <div className={styles.field}>
+          <div className={styles.label}>Precio (ETH)</div>
           <input
+            className={styles.input}
             value={priceEth}
             onChange={(e) => setPriceEth(e.target.value)}
-            style={{ padding: 8, width: 140 }}
           />
-        </label>
+        </div>
 
-        <button onClick={refreshListing} style={{ padding: "10px 14px", cursor: "pointer" }}>
-          Leer listing
-        </button>
-        <button onClick={refreshApproval} style={{ padding: "10px 14px", cursor: "pointer" }}>
-          Leer approvals
-        </button>
+        <div className={styles.actionsInline}>
+          <button className={styles.btn} onClick={refreshListing}>
+            Leer listing
+          </button>
+          <button className={styles.btn} onClick={refreshApproval}>
+            Leer approvals
+          </button>
+        </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 12 }}>
-        {listingBox}
-        {approvalBox}
+      <div className={styles.grid2}>
+        <div className={styles.card}>
+          <div className={styles.cardTitle}>Listing</div>
+          {!listingInfo ? (
+            <div className={styles.muted}>Sin listing cargado.</div>
+          ) : (
+            <div className={styles.kv}>
+              <div className={styles.kvRow}>
+                <div className={styles.kvKey}>tokenId</div>
+                <div className={styles.kvVal}>{listingInfo.tokenId}</div>
+              </div>
+              <div className={styles.kvRow}>
+                <div className={styles.kvKey}>listed</div>
+                <div className={styles.kvVal}>{listingInfo.isListed ? "✅ sí" : "❌ no"}</div>
+              </div>
+              <div className={styles.kvRow}>
+                <div className={styles.kvKey}>seller</div>
+                <div className={styles.kvVal}>{listingInfo.isListed ? listingInfo.seller : "-"}</div>
+              </div>
+              <div className={styles.kvRow}>
+                <div className={styles.kvKey}>price (wei)</div>
+                <div className={styles.kvVal}>{listingInfo.isListed ? listingInfo.priceWei : "-"}</div>
+              </div>
+              <div className={styles.kvRow}>
+                <div className={styles.kvKey}>price (ETH)</div>
+                <div className={styles.kvVal}>{listingInfo.isListed ? listingInfo.priceEth : "-"}</div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className={styles.card}>
+          <div className={styles.cardTitle}>Approvals</div>
+          {!approvalInfo ? (
+            <div className={styles.muted}>Sin approvals cargados.</div>
+          ) : (
+            <div className={styles.kv}>
+              <div className={styles.kvRow}>
+                <div className={styles.kvKey}>tokenId</div>
+                <div className={styles.kvVal}>{approvalInfo.tokenId}</div>
+              </div>
+              <div className={styles.kvRow}>
+                <div className={styles.kvKey}>getApproved</div>
+                <div className={styles.kvVal}>{approvalInfo.approved}</div>
+              </div>
+              <div className={styles.kvRow}>
+                <div className={styles.kvKey}>approvedForAll</div>
+                <div className={styles.kvVal}>{String(approvalInfo.approvedForAll)}</div>
+              </div>
+
+              <div className={styles.hint}>
+                💡 Para que el market pueda transferir:
+                <br />- <span className={styles.code}>approve(market, tokenId)</span>
+                <br />- o <span className={styles.code}>setApprovalForAll(market, true)</span>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      <hr style={{ margin: "18px 0" }} />
+      <hr className={styles.hr} />
 
-      <h3 style={{ margin: "0 0 10px 0" }}>Acciones</h3>
+      <h3 className={styles.sectionTitle}>Acciones</h3>
 
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-        <button onClick={approveToken} style={{ padding: "10px 14px", cursor: "pointer" }}>
+      <div className={styles.btnRow}>
+        <button className={`${styles.btn} ${styles.btnSuccess}`} onClick={approveToken}>
           approve(market, tokenId)
         </button>
 
-        <button onClick={setApprovalForAllTrue} style={{ padding: "10px 14px", cursor: "pointer" }}>
+        <button className={`${styles.btn} ${styles.btnSuccess}`} onClick={setApprovalForAllTrue}>
           setApprovalForAll(market, true)
         </button>
 
-        <button onClick={listForSale} style={{ padding: "10px 14px", cursor: "pointer" }}>
+        <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={listForSale}>
           list(tokenId, price)
         </button>
 
-        <button onClick={cancelListing} style={{ padding: "10px 14px", cursor: "pointer" }}>
+        <button className={`${styles.btn} ${styles.btnDanger}`} onClick={cancelListing}>
           cancel(tokenId)
         </button>
 
-        <button onClick={buyToken} style={{ padding: "10px 14px", cursor: "pointer" }}>
+        <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={buyToken}>
           buy(tokenId) (envía ETH)
         </button>
       </div>
 
-      <div style={{ marginTop: 10, opacity: 0.75 }}>
-        ⚠️ Si <code>list</code> o <code>buy</code> fallan: normalmente falta <b>approve</b> o estás en la red equivocada.
+      <div className={styles.hint}>
+        ⚠️ Si <span className={styles.code}>list</span> o <span className={styles.code}>buy</span> fallan:
+        normalmente falta <b>approve</b> o estás en la red equivocada.
       </div>
     </div>
   );
+
 }

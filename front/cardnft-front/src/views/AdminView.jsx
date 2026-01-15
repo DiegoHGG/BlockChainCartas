@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { ethers } from "ethers";
 import MyTokens from "../components/MyTokens";
+import styles from "./AdminView.module.css";
 
 // ABI AccessControl mínimo
 const ACCESS_ABI = [
@@ -63,33 +64,58 @@ export default function AdminView({ provider, account, nftAddress, marketAddress
     }
   }
 
+  const canAct = target?.startsWith("0x") && target.length >= 42;
+
   return (
-    <div style={{ display: "grid", gap: 14 }}>
-      <div style={{ padding: 14, border: "1px solid #ddd", borderRadius: 14 }}>
-        <h2 style={{ marginTop: 0 }}>Admin Panel</h2>
-
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-          <input
-            placeholder="Address objetivo (0x...)"
-            value={target}
-            onChange={(e) => setTarget(e.target.value)}
-            style={{ padding: 8, width: 380, maxWidth: "100%" }}
-          />
-
-          <select value={role} onChange={(e) => setRole(e.target.value)} style={{ padding: 8 }}>
-            <option value="MINTER_ROLE">MINTER_ROLE</option>
-            <option value="INSPECTOR_ROLE">INSPECTOR_ROLE</option>
-          </select>
-
-          <button onClick={check} style={{ padding: "8px 12px", cursor: "pointer" }}>Check</button>
-          <button onClick={grant} style={{ padding: "8px 12px", cursor: "pointer" }}>Grant</button>
-          <button onClick={revoke} style={{ padding: "8px 12px", cursor: "pointer" }}>Revoke</button>
+    <div className={styles.page}>
+      <section className={styles.card}>
+        <div className={styles.header}>
+          <div>
+            <h2 className={styles.title}>Admin Panel</h2>
+            <p className={styles.subtitle}>Gestiona roles de usuarios (MINTER / INSPECTOR) desde tu cuenta admin.</p>
+          </div>
+          <div className={styles.me}>
+            <div className={styles.meLabel}>Admin actual</div>
+            <div className={styles.meValue}>
+              <code>{account || "-"}</code>
+            </div>
+          </div>
         </div>
 
-        <div style={{ marginTop: 10, opacity: 0.75 }}>
-          Tu cuenta admin actual: <code>{account || "-"}</code>
+        <div className={styles.formRow}>
+          <div className={styles.field}>
+            <label className={styles.label}>Address objetivo</label>
+            <input
+              className={styles.input}
+              placeholder="0x..."
+              value={target}
+              onChange={(e) => setTarget(e.target.value)}
+            />
+            <div className={styles.hint}>Pega una address EVM válida (0x...).</div>
+          </div>
+
+          <div className={styles.fieldSmall}>
+            <label className={styles.label}>Rol</label>
+            <select className={styles.select} value={role} onChange={(e) => setRole(e.target.value)}>
+              <option value="MINTER_ROLE">MINTER_ROLE</option>
+              <option value="INSPECTOR_ROLE">INSPECTOR_ROLE</option>
+            </select>
+            <div className={styles.hint}>Se convierte internamente a keccak256.</div>
+          </div>
+
+          <div className={styles.actions}>
+            <button className={styles.btn} onClick={check} disabled={!canAct}>
+              Check
+            </button>
+            <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={grant} disabled={!canAct}>
+              Grant
+            </button>
+            <button className={`${styles.btn} ${styles.btnDanger}`} onClick={revoke} disabled={!canAct}>
+              Revoke
+            </button>
+          </div>
         </div>
-      </div>
+      </section>
 
       {/* Admin también ve sus tokens y puede vender */}
       <MyTokens

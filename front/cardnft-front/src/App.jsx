@@ -8,8 +8,10 @@ import AdminView from "./views/AdminView";
 import UserView from "./views/UserView";
 import InspectorView from "./views/InspectorView";
 
+import styles from "./App.module.css";
+
 const NFT_ADDRESS = "0xa9AAd51507Bee07E39391Ddaeb28F4647A7e9965";
-const MARKET_ADDRESS = "0xD3B97aB82C1Aff42934eA01D6f514B8520B181Ca";
+const MARKET_ADDRESS = "0xa56dC5448e3C94a6dCEF913f14D7Ab5D4Fcb181D";
 
 const ACCESS_ABI = ["function hasRole(bytes32 role, address account) view returns (bool)"];
 
@@ -56,9 +58,7 @@ export default function App() {
       const net = await provider.getNetwork();
       setChainId(net.chainId.toString());
 
-      // ✅ al conectar, vete a User por defecto
       setActive("user");
-
       setStatus("✅ Conectado");
     } catch (e) {
       console.error(e);
@@ -98,7 +98,7 @@ export default function App() {
     const onAccountsChanged = (accs) => {
       const acc = accs?.[0] ?? "";
       setAccount(acc);
-      setActive("user"); // ✅ al cambiar cuenta vuelve a user
+      setActive("user");
       setStatus("Cuenta cambiada");
     };
 
@@ -119,86 +119,126 @@ export default function App() {
   }, [hasEthereum, provider]);
 
   return (
-    <div style={{ fontFamily: "system-ui, Arial", padding: 20, maxWidth: 1100, margin: "0 auto" }}>
-      <h1 style={{ margin: 0 }}>CardNFT dApp</h1>
-      <div style={{ opacity: 0.8, marginTop: 6 }}>
-        NFT: <code>{NFT_ADDRESS}</code>
-        <br />
-        Market: <code>{MARKET_ADDRESS}</code>
-      </div>
-
-      <div style={{ marginTop: 12, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-        <button onClick={connect} style={{ padding: "10px 14px", cursor: "pointer" }}>
-          {account ? "Reconectar" : "Conectar MetaMask"}
-        </button>
-
-        <div>
-          <div>
-            Cuenta: <b>{account ? shortAddr(account) : "-"}</b>
-          </div>
-          <div>
-            chainId: <b>{chainId || "-"}</b>
-          </div>
-
-          {/* ✅ chips solo si conectado */}
-          {account && (
-            <div style={{ marginTop: 6, display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {isAdmin && <span style={{ padding: "4px 10px", borderRadius: 999, background: "#eef" }}>ADMIN</span>}
-              {isMinter && <span style={{ padding: "4px 10px", borderRadius: 999, background: "#efe" }}>MINTER</span>}
-              {isInspector && (
-                <span style={{ padding: "4px 10px", borderRadius: 999, background: "#ffe" }}>INSPECTOR</span>
-              )}
+    <div className={styles.page}>
+      <header className={styles.header}>
+        <div className={styles.titleBlock}>
+          <h1 className={styles.title}>CardNFT dApp</h1>
+          <div className={styles.subTitle}>
+            <div>
+              NFT: <span className={styles.mono}>{NFT_ADDRESS}</span>
             </div>
-          )}
+            <div>
+              Market: <span className={styles.mono}>{MARKET_ADDRESS}</span>
+            </div>
+          </div>
         </div>
+
+        <div className={styles.connectBlock}>
+          <button className={styles.primaryBtn} onClick={connect}>
+            {account ? "Reconectar" : "Conectar MetaMask"}
+          </button>
+
+          <div className={styles.meta}>
+            <div>
+              Cuenta: <b>{account ? shortAddr(account) : "-"}</b>
+            </div>
+            <div>
+              chainId: <b>{chainId || "-"}</b>
+            </div>
+
+            {account && (
+              <div className={styles.chips}>
+                {isAdmin && <span className={`${styles.chip} ${styles.chipAdmin}`}>ADMIN</span>}
+                {isMinter && <span className={`${styles.chip} ${styles.chipMinter}`}>MINTER</span>}
+                {isInspector && <span className={`${styles.chip} ${styles.chipInspector}`}>INSPECTOR</span>}
+              </div>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <div className={styles.statusBar}>
+        <b>Status:</b> <span>{status || "-"}</span>
       </div>
 
-      <div style={{ marginTop: 10, padding: 10, borderRadius: 10, border: "1px solid #ddd" }}>
-        <b>Status:</b> {status || "-"}
-      </div>
-
-      {/* ✅ si NO hay cuenta: solo mensaje */}
-      {!account && (
-        <div style={{ marginTop: 14, padding: 14, border: "1px solid #eee", borderRadius: 12, opacity: 0.85 }}>
+      {!account ? (
+        <section className={styles.notice}>
           Conecta MetaMask para ver tus tokens, marketplace y roles.
-        </div>
-      )}
-
-      {/* ✅ si hay cuenta: tabs + vistas */}
-      {account && (
+        </section>
+      ) : (
         <>
-          <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <button onClick={() => setActive("user")} style={{ padding: "10px 14px", cursor: "pointer" }}>
+          <nav className={styles.tabs}>
+            <button
+              className={`${styles.tab} ${active === "user" ? styles.tabActive : ""}`}
+              onClick={() => setActive("user")}
+            >
               User / Minter
             </button>
-            <button onClick={() => setActive("inspector")} style={{ padding: "10px 14px", cursor: "pointer" }}>
+
+            <button
+              className={`${styles.tab} ${active === "inspector" ? styles.tabActive : ""}`}
+              onClick={() => setActive("inspector")}
+            >
               Inspector
             </button>
+
             <button
+              className={`${styles.tab} ${active === "admin" ? styles.tabActive : ""}`}
               onClick={() => setActive("admin")}
-              style={{ padding: "10px 14px", cursor: "pointer" }}
               disabled={!isAdmin}
               title={!isAdmin ? "Necesitas DEFAULT_ADMIN_ROLE" : ""}
             >
               Admin
             </button>
-            <button onClick={() => setActive("market")} style={{ padding: "10px 14px", cursor: "pointer" }}>
-              Market (full)
+
+            <button
+              className={`${styles.tab} ${active === "market" ? styles.tabActive : ""}`}
+              onClick={() => setActive("market")}
+            >
+              Market
             </button>
-            <button onClick={() => setActive("swap")} style={{ padding: "10px 14px", cursor: "pointer" }}>
+
+            <button
+              className={`${styles.tab} ${active === "swap" ? styles.tabActive : ""}`}
+              onClick={() => setActive("swap")}
+            >
               Swap
             </button>
-          </div>
+          </nav>
 
-          <div style={{ marginTop: 16 }}>
+          <main className={styles.content}>
             {active === "admin" && isAdmin ? (
-              <AdminView provider={provider} account={account} nftAddress={NFT_ADDRESS} marketAddress={MARKET_ADDRESS} onStatus={setStatus} />
+              <AdminView
+                provider={provider}
+                account={account}
+                nftAddress={NFT_ADDRESS}
+                marketAddress={MARKET_ADDRESS}
+                onStatus={setStatus}
+              />
             ) : active === "inspector" ? (
-              <InspectorView provider={provider} account={account} nftAddress={NFT_ADDRESS} marketAddress={MARKET_ADDRESS} onStatus={setStatus} />
+              <InspectorView
+                provider={provider}
+                account={account}
+                nftAddress={NFT_ADDRESS}
+                marketAddress={MARKET_ADDRESS}
+                onStatus={setStatus}
+              />
             ) : active === "market" ? (
-              <MarketTab provider={provider} account={account} nftAddress={NFT_ADDRESS} marketAddress={MARKET_ADDRESS} onStatus={setStatus} />
+              <MarketTab
+                provider={provider}
+                account={account}
+                nftAddress={NFT_ADDRESS}
+                marketAddress={MARKET_ADDRESS}
+                onStatus={setStatus}
+              />
             ) : active === "swap" ? (
-              <SwapTab provider={provider} account={account} nftAddress={NFT_ADDRESS} marketAddress={MARKET_ADDRESS} onStatus={setStatus} />
+              <SwapTab
+                provider={provider}
+                account={account}
+                nftAddress={NFT_ADDRESS}
+                marketAddress={MARKET_ADDRESS}
+                onStatus={setStatus}
+              />
             ) : (
               <UserView
                 provider={provider}
@@ -209,7 +249,7 @@ export default function App() {
                 onStatus={setStatus}
               />
             )}
-          </div>
+          </main>
         </>
       )}
     </div>

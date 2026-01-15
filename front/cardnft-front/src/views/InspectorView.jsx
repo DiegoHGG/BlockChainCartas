@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ethers } from "ethers";
 import MyTokens from "../components/MyTokens";
+import styles from "./InspectorView.module.css";
 
 const NFT_ABI = [
   "function updateEstado(uint256 tokenId, uint8 nuevoEstado)",
@@ -15,6 +16,7 @@ export default function InspectorView({ provider, account, nftAddress, marketAdd
   async function update() {
     try {
       if (!provider) return;
+
       const signer = await provider.getSigner();
       const nft = new ethers.Contract(nftAddress, NFT_ABI, signer);
 
@@ -29,8 +31,10 @@ export default function InspectorView({ provider, account, nftAddress, marketAdd
     }
   }
 
+  const canAct = Number(tokenId) > 0;
+
   return (
-    <div style={{ display: "grid", gap: 14 }}>
+    <div className={styles.page}>
       <MyTokens
         provider={provider}
         account={account}
@@ -39,31 +43,54 @@ export default function InspectorView({ provider, account, nftAddress, marketAdd
         onStatus={onStatus}
       />
 
-      <div style={{ padding: 14, border: "1px solid #ddd", borderRadius: 14 }}>
-        <h2 style={{ marginTop: 0 }}>Inspector Panel</h2>
+      <section className={styles.card}>
+        <div className={styles.header}>
+          <div>
+            <h2 className={styles.title}>Inspector Panel</h2>
+            <p className={styles.subtitle}>
+              Como inspector puedes actualizar el estado de cualquier token (aunque no seas el owner).
+            </p>
+          </div>
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-          <label>
-            TokenId
-            <input value={tokenId} onChange={(e) => setTokenId(e.target.value)} style={{ padding: 8, width: 140, marginLeft: 8 }} />
-          </label>
+          <div className={styles.me}>
+            <div className={styles.meLabel}>Cuenta</div>
+            <div className={styles.meValue}>
+              <code>{account || "-"}</code>
+            </div>
+          </div>
+        </div>
 
-          <label>
-            Nuevo estado
-            <select value={estado} onChange={(e) => setEstado(e.target.value)} style={{ padding: 8, marginLeft: 8 }}>
-              {ESTADOS.map((x, i) => <option key={i} value={i}>{i} - {x}</option>)}
+        <div className={styles.formRow}>
+          <div className={styles.fieldSmall}>
+            <label className={styles.label}>TokenId</label>
+            <input
+              className={styles.input}
+              value={tokenId}
+              onChange={(e) => setTokenId(e.target.value)}
+              placeholder="1"
+            />
+            <div className={styles.hint}>Debe existir en la colección.</div>
+          </div>
+
+          <div className={styles.field}>
+            <label className={styles.label}>Nuevo estado</label>
+            <select className={styles.select} value={estado} onChange={(e) => setEstado(e.target.value)}>
+              {ESTADOS.map((x, i) => (
+                <option key={i} value={i}>
+                  {i} - {x}
+                </option>
+              ))}
             </select>
-          </label>
+            <div className={styles.hint}>Esto llamará a <code>updateEstado(tokenId, estado)</code>.</div>
+          </div>
 
-          <button onClick={update} style={{ padding: "10px 14px", cursor: "pointer" }}>
-            Actualizar estado
-          </button>
+          <div className={styles.actions}>
+            <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={update} disabled={!canAct}>
+              Actualizar estado
+            </button>
+          </div>
         </div>
-
-        <div style={{ marginTop: 10, opacity: 0.75 }}>
-          Un inspector puede cambiar el estado aunque no sea owner.
-        </div>
-      </div>
+      </section>
     </div>
   );
 }
