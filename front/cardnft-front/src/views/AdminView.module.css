@@ -4,11 +4,11 @@
 }
 
 .card {
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
+  border: 1px solid var(--border);
+  background: var(--surface);
   border-radius: 14px;
   padding: 14px;
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.05);
+  box-shadow: var(--shadow-2);
 }
 
 .header {
@@ -24,13 +24,13 @@
   margin: 0;
   font-size: 20px;
   letter-spacing: -0.01em;
-  color: #0f172a;
+  color: var(--text);
 }
 
 .subtitle {
   margin: 6px 0 0 0;
   font-size: 13px;
-  color: #475569;
+  color: var(--muted);
   max-width: 720px;
 }
 
@@ -41,7 +41,7 @@
 
 .meLabel {
   font-size: 12px;
-  color: #64748b;
+  color: var(--muted);
 }
 
 .meValue code {
@@ -49,9 +49,9 @@
   margin-top: 6px;
   padding: 4px 10px;
   border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  color: #0f172a;
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--surface) 85%, var(--text) 15%);
+  color: var(--text);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 12px;
 }
@@ -82,7 +82,7 @@
 .label {
   font-size: 12px;
   font-weight: 800;
-  color: #334155;
+  color: var(--text);
 }
 
 .input,
@@ -90,22 +90,22 @@
   width: 100%;
   padding: 10px 12px;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
-  color: #0f172a;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
   outline: none;
   font-size: 14px;
 }
 
 .input:focus,
 .select:focus {
-  border-color: #93c5fd;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+  border-color: color-mix(in oklab, var(--primary) 55%, var(--border) 45%);
+  box-shadow: 0 0 0 4px var(--focus);
 }
 
 .hint {
   font-size: 12px;
-  color: #64748b;
+  color: var(--muted);
 }
 
 .actions {
@@ -117,9 +117,9 @@
 
 .btn {
   appearance: none;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
-  color: #0f172a;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
   padding: 10px 14px;
   border-radius: 12px;
   cursor: pointer;
@@ -127,7 +127,7 @@
 }
 
 .btn:hover {
-  background: #f8fafc;
+  background: var(--surface2);
 }
 
 .btn:disabled {
@@ -136,22 +136,23 @@
 }
 
 .btnPrimary {
-  border-color: #1d4ed8;
-  background: #2563eb;
-  color: #ffffff;
-  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.18);
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--primary-contrast);
+  box-shadow: 0 10px 22px color-mix(in oklab, var(--primary) 22%, transparent);
 }
 
 .btnPrimary:hover {
-  filter: brightness(0.98);
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
 }
 
 .btnDanger {
-  border-color: #fecaca;
-  background: #fff1f2;
-  color: #9f1239;
+  border-color: color-mix(in oklab, var(--danger) 30%, var(--border) 70%);
+  background: color-mix(in oklab, var(--danger) 12%, var(--surface) 88%);
+  color: var(--text);
 }
 
 .btnDanger:hover {
-  background: #ffe4e6;
+  background: color-mix(in oklab, var(--danger) 18%, var(--surface) 82%);
 }

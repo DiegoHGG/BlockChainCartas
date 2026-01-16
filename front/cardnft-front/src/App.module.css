@@ -3,7 +3,7 @@
   max-width: 1120px;
   margin: 0 auto;
   padding: 20px;
-  color: #0f172a;
+  color: var(--text);
 }
 
 .header {
@@ -30,15 +30,15 @@
   display: grid;
   gap: 4px;
   font-size: 13px;
-  color: #334155;
+  color: var(--muted);
 }
 
 .mono {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
   font-size: 12px;
-  color: #0f172a;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
+  color: var(--text);
+  background: color-mix(in oklab, var(--surface) 85%, var(--text) 15%);
+  border: 1px solid var(--border);
   padding: 2px 8px;
   border-radius: 10px;
 }
@@ -53,18 +53,19 @@
 
 .primaryBtn {
   appearance: none;
-  border: 1px solid #1d4ed8;
-  background: #2563eb;
-  color: white;
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: var(--primary-contrast);
   font-weight: 700;
   padding: 10px 14px;
   border-radius: 12px;
   cursor: pointer;
-  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.18);
+  box-shadow: 0 10px 22px color-mix(in oklab, var(--primary) 22%, transparent);
 }
 
 .primaryBtn:hover {
-  filter: brightness(0.98);
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
 }
 
 .primaryBtn:active {
@@ -73,7 +74,7 @@
 
 .meta {
   font-size: 13px;
-  color: #334155;
+  color: var(--muted);
   display: grid;
   gap: 4px;
   padding-top: 2px;
@@ -93,46 +94,47 @@
   border-radius: 999px;
   font-size: 12px;
   font-weight: 800;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  color: #0f172a;
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--surface) 92%, var(--text) 8%);
+  color: var(--text);
 }
 
+/* Chips “role”: theme-aware */
 .chipAdmin {
-  background: #eef2ff;
-  border-color: #c7d2fe;
-  color: #3730a3;
+  background: color-mix(in oklab, var(--primary) 16%, var(--surface) 84%);
+  border-color: color-mix(in oklab, var(--primary) 28%, var(--border) 72%);
+  color: var(--text);
 }
 
 .chipMinter {
-  background: #ecfdf5;
-  border-color: #a7f3d0;
-  color: #065f46;
+  background: color-mix(in oklab, #22c55e 14%, var(--surface) 86%);
+  border-color: color-mix(in oklab, #22c55e 26%, var(--border) 74%);
+  color: var(--text);
 }
 
 .chipInspector {
-  background: #fffbeb;
-  border-color: #fde68a;
-  color: #92400e;
+  background: color-mix(in oklab, #f59e0b 14%, var(--surface) 86%);
+  border-color: color-mix(in oklab, #f59e0b 26%, var(--border) 74%);
+  color: var(--text);
 }
 
 .statusBar {
   margin-top: 14px;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
+  border: 1px solid var(--border);
+  background: var(--surface);
   border-radius: 14px;
   padding: 10px 12px;
-  color: #0f172a;
-  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.05);
+  color: var(--text);
+  box-shadow: var(--shadow-2);
 }
 
 .notice {
   margin-top: 14px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
+  border: 1px solid var(--border);
+  background: var(--surface2);
   border-radius: 14px;
   padding: 14px;
-  color: #334155;
+  color: var(--muted);
 }
 
 .tabs {
@@ -144,9 +146,9 @@
 
 .tab {
   appearance: none;
-  border: 1px solid #e2e8f0;
-  background: #ffffff;
-  color: #0f172a;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
   padding: 10px 14px;
   border-radius: 12px;
   cursor: pointer;
@@ -154,7 +156,7 @@
 }
 
 .tab:hover {
-  background: #f8fafc;
+  background: var(--surface2);
 }
 
 .tab:disabled {
@@ -163,11 +165,25 @@
 }
 
 .tabActive {
-  border-color: #93c5fd;
-  background: #eff6ff;
-  color: #1d4ed8;
+  border-color: color-mix(in oklab, var(--primary) 35%, var(--border) 65%);
+  background: color-mix(in oklab, var(--primary) 12%, var(--surface) 88%);
+  color: var(--text);
 }
 
 .content {
   margin-top: 14px;
 }
+
+/* Toggle theme button */
+.themeBtn{
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+}
+.themeBtn:hover{ background: var(--surface2); }

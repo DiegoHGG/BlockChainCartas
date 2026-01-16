@@ -20,10 +20,24 @@ function shortAddr(a) {
   return `${a.slice(0, 6)}...${a.slice(-4)}`;
 }
 
+function getInitialTheme() {
+  const saved = localStorage.getItem("theme");
+  if (saved === "dark" || saved === "light") return saved;
+  return window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ? "dark" : "light";
+}
+
+
 export default function App() {
   const [account, setAccount] = useState("");
   const [chainId, setChainId] = useState("");
   const [status, setStatus] = useState("");
+  const [theme, setTheme] = useState(getInitialTheme);
+
+useEffect(() => {
+  document.documentElement.dataset.theme = theme; // <html data-theme="dark">
+  localStorage.setItem("theme", theme);
+}, [theme]);
+
 
   const [active, setActive] = useState("user"); // user | admin | inspector | market | swap
 
@@ -134,6 +148,14 @@ export default function App() {
         </div>
 
         <div className={styles.connectBlock}>
+          <button
+            className={styles.themeBtn}
+            onClick={() => setTheme(t => (t === "dark" ? "light" : "dark"))}
+            title="Toggle theme"
+          >
+              {theme === "dark" ? "☀️ Light" : "🌙 Dark"}
+          </button>
+
           <button className={styles.primaryBtn} onClick={connect}>
             {account ? "Reconectar" : "Conectar MetaMask"}
           </button>

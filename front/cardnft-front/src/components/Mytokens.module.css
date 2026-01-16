@@ -19,10 +19,11 @@
 }
 
 .tokenCard {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   border-radius: 16px;
-  background: #fff;
+  background: var(--surface);
   padding: 14px;
+  box-shadow: var(--shadow-1);
 }
 
 .top {
@@ -35,7 +36,7 @@
 .tokenId {
   font-weight: 800;
   font-size: 14px;
-  color: #111827;
+  color: var(--text);
 }
 
 .meta {
@@ -43,10 +44,10 @@
   display: grid;
   gap: 6px;
   font-size: 13px;
-  color: #374151;
+  color: var(--muted);
 }
 
-.meta b { color: #111827; }
+.meta b { color: var(--text); }
 
 .actions {
   margin-top: 12px;
@@ -59,12 +60,13 @@
   display: inline-flex;
   padding: 4px 10px;
   border-radius: 999px;
-  border: 1px solid #e5e7eb;
-  background: #f9fafb;
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--surface) 92%, var(--text) 8%);
   font-size: 12px;
   font-weight: 700;
-  color: #374151;
+  color: color-mix(in oklab, var(--text) 80%, var(--muted) 20%);
 }
+
 .leftBlock {
   display: flex;
   gap: 12px;
