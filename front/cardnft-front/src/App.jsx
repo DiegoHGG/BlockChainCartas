@@ -197,12 +197,15 @@ useEffect(() => {
               User / Minter
             </button>
 
-            <button
-              className={`${styles.tab} ${active === "inspector" ? styles.tabActive : ""}`}
-              onClick={() => setActive("inspector")}
-            >
-              Inspector
-            </button>
+<button
+  className={`${styles.tab} ${active === "inspector" ? styles.tabActive : ""}`}
+  onClick={() => setActive("inspector")}
+  disabled={!isInspector}
+  title={!isInspector ? "Necesitas INSPECTOR_ROLE" : ""}
+>
+  Inspector
+</button>
+
 
             <button
               className={`${styles.tab} ${active === "admin" ? styles.tabActive : ""}`}
