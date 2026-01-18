@@ -4,8 +4,29 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
+interface ICardState {
+    function estadoOf(uint256 tokenId) external view returns (uint8 estado, uint64 updatedAt);
+}
+
+interface IAccessControl {
+    function hasRole(bytes32 role, address account) external view returns (bool);
+}
+
 contract CardNFTMarketNative is ReentrancyGuard {
     IERC721 public immutable nft;
+
+    bytes32 public constant INSPECTOR_ROLE = keccak256("INSPECTOR_ROLE");
+
+struct PendingListing {
+    address seller;
+    uint256 price;
+    uint64 requestedAt;
+}
+
+mapping(uint256 => PendingListing) public pendingListings;
+
+event ListingRequested(uint256 indexed tokenId, address indexed seller, uint256 price);
+event ListingFinalized(uint256 indexed tokenId, address indexed inspector, address indexed seller, uint256 price, uint8 estado);
 
     // ----------------------------
     // LISTINGS (venta por ETH)
@@ -63,24 +84,65 @@ contract CardNFTMarketNative is ReentrancyGuard {
     // ============================
     // Venta por ETH
     // ============================
-    function list(uint256 tokenId, uint256 price) external {
-        require(price > 0, "price=0");
-        require(nft.ownerOf(tokenId) == msg.sender, "not owner");
-        // opcional pero recomendado: exigir approval al listar
-        require(_isApprovedOrOwner(msg.sender, tokenId), "market not approved");
+ function list(uint256 tokenId, uint256 price) external {
+    require(price > 0, "price=0");
+    require(nft.ownerOf(tokenId) == msg.sender, "not owner");
+    require(_isApprovedOrOwner(msg.sender, tokenId), "market not approved");
 
-        listings[tokenId] = Listing({ seller: msg.sender, price: price });
-        emit Listed(tokenId, msg.sender, price);
-    }
+    require(listings[tokenId].seller == address(0), "already listed");
+    require(pendingListings[tokenId].seller == address(0), "already pending");
 
-    function cancel(uint256 tokenId) external {
-        Listing memory l = listings[tokenId];
-        require(l.seller != address(0), "not listed");
+    pendingListings[tokenId] = PendingListing({
+        seller: msg.sender,
+        price: price,
+        requestedAt: uint64(block.timestamp)
+    });
+
+    emit ListingRequested(tokenId, msg.sender, price);
+}
+
+
+function finalizeListing(uint256 tokenId) external {
+    PendingListing memory p = pendingListings[tokenId];
+    require(p.seller != address(0), "not pending");
+
+    // Solo inspector (role sul contratto NFT)
+    require(IAccessControl(address(nft)).hasRole(INSPECTOR_ROLE, msg.sender), "not inspector");
+
+    // seller ancora owner e market approvato
+    require(nft.ownerOf(tokenId) == p.seller, "seller no longer owner");
+    require(_isApprovedOrOwner(p.seller, tokenId), "market not approved");
+
+    // Deve essere ispezionata (estado != UNKNOWN)
+    (uint8 estado, ) = ICardState(address(nft)).estadoOf(tokenId);
+    require(estado != 0, "token not inspected yet");
+
+    delete pendingListings[tokenId];
+    listings[tokenId] = Listing({ seller: p.seller, price: p.price });
+
+    emit ListingFinalized(tokenId, msg.sender, p.seller, p.price, estado);
+    emit Listed(tokenId, p.seller, p.price);
+}
+
+
+
+ function cancel(uint256 tokenId) external {
+    Listing memory l = listings[tokenId];
+
+    if (l.seller != address(0)) {
         require(l.seller == msg.sender, "not seller");
-
         delete listings[tokenId];
         emit Cancelled(tokenId, msg.sender);
+        return;
     }
+
+    PendingListing memory p = pendingListings[tokenId];
+    require(p.seller != address(0), "not listed");
+    require(p.seller == msg.sender, "not seller");
+    delete pendingListings[tokenId];
+    emit Cancelled(tokenId, msg.sender);
+}
+
 
     function buy(uint256 tokenId) external payable nonReentrant {
         Listing memory l = listings[tokenId];

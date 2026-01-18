@@ -12,6 +12,7 @@ const NFT_ABI = [
   "function approve(address to, uint256 tokenId)",
   "function setApprovalForAll(address operator, bool approved)",
   "function getCard(uint256 tokenId) view returns (address owner,string juego,string expansion,uint256 numero,string rareza,uint8 estado,uint64 updatedAt)",
+
 ];
 
 // ABI mínimo del Market (list/cancel + lectura listing)
@@ -19,6 +20,9 @@ const MARKET_ABI = [
   "function list(uint256 tokenId, uint256 price)",
   "function cancel(uint256 tokenId)",
   "function listings(uint256 tokenId) view returns (address seller, uint256 price)",
+  "function pendingListings(uint256 tokenId) view returns (address seller, uint256 price, uint64 requestedAt)",
+  "function finalizeListing(uint256 tokenId)",
+
 ];
 
 const ESTADOS = ["UNKNOWN", "POOR", "PLAYED", "GOOD", "NEAR_MINT", "MINT", "GRADED"];
@@ -126,6 +130,18 @@ export default function MyTokens({ provider, account, nftAddress, marketAddress,
           }
         }
 
+        // >>> AGGIUNGI QUI: pending info (en revisión)
+let pending = { seller: ethers.ZeroAddress, price: 0n, requestedAt: 0 };
+if (marketRead) {
+  try {
+    pending = await marketRead.pendingListings(BigInt(idStr));
+  } catch {
+    // ignore
+  }
+}
+// <<< FINE
+
+
         // approval
         const approved = await nftRead.getApproved(BigInt(idStr));
         const isForAll = await nftRead.isApprovedForAll(account, marketAddress);
@@ -141,8 +157,12 @@ export default function MyTokens({ provider, account, nftAddress, marketAddress,
           updatedAt: Number(data[6]),
           listingSeller: listing?.seller,
           listingPrice: listing?.price ?? 0n,
+          pendingSeller: pending?.seller,
+          pendingPrice: pending?.price ?? 0n,
+          pendingRequestedAt: Number(pending?.requestedAt ?? 0),
           approved,
           isForAll,
+
         });
       }
 
@@ -156,23 +176,28 @@ export default function MyTokens({ provider, account, nftAddress, marketAddress,
     }
   }
 
-  async function approveMarket(tokenId) {
-    try {
-      if (!provider) return;
-      const signer = await provider.getSigner();
-      const nft = new ethers.Contract(nftAddress, NFT_ABI, signer);
+async function approveMarket(tokenId) {
+  try {
+    if (!provider) return;
+    const signer = await provider.getSigner();
+    const nft = new ethers.Contract(nftAddress, NFT_ABI, signer);
 
-      onStatus?.(`Firmando approve para token ${tokenId}...`);
-      const tx = await nft.approve(marketAddress, BigInt(tokenId));
-      await tx.wait();
+    onStatus?.(`Aprobando market y enviando a inspección el token ${tokenId}...`);
 
-      onStatus?.(`✅ Approve OK para token ${tokenId}`);
-      await loadMyTokens();
-    } catch (e) {
-      console.error(e);
-      onStatus?.(`❌ Approve falló: ${e?.shortMessage ?? e?.message ?? e}`);
-    }
+    // >>> 1) Approve GLOBAL al market (consigliato)
+    const tx1 = await nft.setApprovalForAll(marketAddress, true);
+    await tx1.wait();
+    // <<<
+
+
+    onStatus?.(`✅ Market aprobado + inspección solicitada para token ${tokenId}`);
+    await loadMyTokens();
+  } catch (e) {
+    console.error(e);
+    onStatus?.(`❌ Approve/inspección falló: ${e?.shortMessage ?? e?.message ?? e}`);
   }
+}
+
 
   async function listToken(tokenId) {
     try {
@@ -192,7 +217,7 @@ export default function MyTokens({ provider, account, nftAddress, marketAddress,
       const tx = await market.list(BigInt(tokenId), wei);
       await tx.wait();
 
-      onStatus?.(`✅ Token ${tokenId} listado!`);
+      onStatus?.(`✅ Solicitud enviada. Token ${tokenId} está en revisión del inspector.`);
       await loadMyTokens();
     } catch (e) {
       console.error(e);
@@ -247,7 +272,8 @@ export default function MyTokens({ provider, account, nftAddress, marketAddress,
           {tokens.map((t) => {
             const listed = t.listingSeller && t.listingSeller !== ethers.ZeroAddress;
             const priceEth = listed ? ethers.formatEther(t.listingPrice) : "";
-
+            const pending = t.pendingSeller && t.pendingSeller !== ethers.ZeroAddress;
+            const pendingPriceEth = pending ? ethers.formatEther(t.pendingPrice) : "";
             const approvedOk =
               t.isForAll || (t.approved?.toLowerCase?.() === marketAddress?.toLowerCase?.());
 
@@ -289,36 +315,56 @@ export default function MyTokens({ provider, account, nftAddress, marketAddress,
                     {approvedOk ? "✅ Approved" : "Approve Market"}
                   </button>
 
-                  {!listed ? (
-                    <>
-                      <input
-                        className="input"
-                        placeholder="Precio (ETH) e.g. 0.01"
-                        value={prices[t.tokenId] ?? ""}
-                        onChange={(e) =>
-                          setPrices((p) => ({ ...p, [t.tokenId]: e.target.value }))
-                        }
-                        style={{ maxWidth: 180 }}
-                      />
-                      <button
-                        className="btn"
-                        onClick={() => listToken(t.tokenId)}
-                        disabled={!approvedOk}
-                        title={!approvedOk ? "Primero aprueba el market" : "Poner en venta"}
-                      >
-                        Poner en venta
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <div className={styles.listedPill}>
-                        Listado: <b>{priceEth} ETH</b>
-                      </div>
-                      <button className="btn btnDanger" onClick={() => cancelListing(t.tokenId)}>
-                        Cancelar venta
-                      </button>
-                    </>
-                  )}
+                  {pending ? (
+  <>
+    <div className={styles.listedPill}>
+      En revisión: <b>{pendingPriceEth} ETH</b>
+    </div>
+    <button
+      className="btn btnDanger"
+      onClick={() => cancelListing(t.tokenId)}
+    >
+      Cancelar solicitud
+    </button>
+  </>
+) : !listed ? (
+  <>
+    <input
+      className="input"
+      placeholder="Precio (ETH) e.g. 0.01"
+      value={prices[t.tokenId] ?? ""}
+      onChange={(e) =>
+        setPrices((p) => ({ ...p, [t.tokenId]: e.target.value }))
+      }
+      style={{ maxWidth: 180 }}
+    />
+    <button
+      className="btn"
+      onClick={() => listToken(t.tokenId)}
+      disabled={!approvedOk}
+      title={
+        !approvedOk
+          ? "Primero aprueba el market"
+          : "Enviar a revisión del inspector"
+      }
+    >
+      Poner en venta
+    </button>
+  </>
+) : (
+  <>
+    <div className={styles.listedPill}>
+      Listado: <b>{priceEth} ETH</b>
+    </div>
+    <button
+      className="btn btnDanger"
+      onClick={() => cancelListing(t.tokenId)}
+    >
+      Cancelar venta
+    </button>
+  </>
+)}
+
                 </div>
 
                 {!approvedOk && (

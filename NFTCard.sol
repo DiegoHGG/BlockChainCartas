@@ -28,6 +28,13 @@ contract CardNFT is ERC721, ERC721Enumerable, AccessControl {
         uint64 updatedAt;
     }
 
+
+mapping(uint256 => bool) public inspectionRequested;
+
+event InspectionRequested(uint256 indexed tokenId, address indexed owner);
+event InspectionCompleted(uint256 indexed tokenId, address indexed inspector, uint8 nuevoEstado);
+
+
     mapping(uint256 => CardData) private _cardData;
 
     uint256 public nextTokenId = 1;
@@ -102,6 +109,7 @@ contract CardNFT is ERC721, ERC721Enumerable, AccessControl {
         return (cardOwner, c.juego, c.expansion, c.numero, c.rareza, c.estado, c.updatedAt);
     }
 
+
     // --- Lectura estado ---
     function estadoOf(uint256 tokenId) external view returns (Estado, uint64) {
         ownerOf(tokenId); // revierte si no existe
@@ -125,8 +133,21 @@ contract CardNFT is ERC721, ERC721Enumerable, AccessControl {
         _cardData[tokenId].estado = nuevoEstado;
         _cardData[tokenId].updatedAt = uint64(block.timestamp);
 
+        if (isInspector) {
+        inspectionRequested[tokenId] = false;
+        emit InspectionCompleted(tokenId, msg.sender, uint8(nuevoEstado));
+    }
+
         emit EstadoUpdated(tokenId, msg.sender, anterior, nuevoEstado, block.timestamp);
     }
+
+
+    function requestInspection(uint256 tokenId) external {
+    require(ownerOf(tokenId) == msg.sender, "not owner");
+    inspectionRequested[tokenId] = true;
+    emit InspectionRequested(tokenId, msg.sender);
+}
+
 
     // Admin puede forzar cambios
     function adminUpdateEstado(uint256 tokenId, Estado nuevoEstado)

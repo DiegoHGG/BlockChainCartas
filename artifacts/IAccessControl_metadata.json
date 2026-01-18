@@ -1,0 +1,94 @@
+{
+	"compiler": {
+		"version": "0.8.30+commit.73712a01"
+	},
+	"language": "Solidity",
+	"output": {
+		"abi": [
+			{
+				"inputs": [
+					{
+						"internalType": "bytes32",
+						"name": "role",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					}
+				],
+				"name": "hasRole",
+				"outputs": [
+					{
+						"internalType": "bool",
+						"name": "",
+						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			}
+		],
+		"devdoc": {
+			"kind": "dev",
+			"methods": {},
+			"version": 1
+		},
+		"userdoc": {
+			"kind": "user",
+			"methods": {},
+			"version": 1
+		}
+	},
+	"settings": {
+		"compilationTarget": {
+			"contratoTransaccion.sol": "IAccessControl"
+		},
+		"evmVersion": "london",
+		"libraries": {},
+		"metadata": {
+			"bytecodeHash": "ipfs"
+		},
+		"optimizer": {
+			"enabled": false,
+			"runs": 200
+		},
+		"remappings": []
+	},
+	"sources": {
+		"@openzeppelin/contracts/security/ReentrancyGuard.sol": {
+			"keccak256": "0xbec94e472f5fde800401cdc48fe89c0260ab92b22965ddce17a715f9825b4f12",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://d28923f397006622c72dccec7a22c9d5c4c8407c1285dace5e69f4a7d54545e5",
+				"dweb:/ipfs/QmPh1BnF3mrcUx1UZnE5uKjavTomomrJ5wdPwh22NvJSuz"
+			]
+		},
+		"@openzeppelin/contracts/token/ERC721/IERC721.sol": {
+			"keccak256": "0x2304d2184332f82e7a8a3e0145cf525b08fe855c46ffce6df83cfbbf59a159b2",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://071c1587ce7f87951803f14915bf3d2dfcc1865abb4f0dbb803c73602d18bcbd",
+				"dweb:/ipfs/QmXw1aRNSTMvgYVgEuPweHWish72FJaPL8fw4RagkGGSCq"
+			]
+		},
+		"@openzeppelin/contracts/utils/introspection/IERC165.sol": {
+			"keccak256": "0x564310f4788f096e1c1e77edd645999aa7fbad46dd545d7a722f70d5cfe19033",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://844ba854105b8a3e4cfb2cc37de926020beb97b238e85e00df05b79be953cec9",
+				"dweb:/ipfs/QmWG5HLDsFRNe3A2ZxvKcB79tqJN9V5yTwcBUjUPYhDki3"
+			]
+		},
+		"contratoTransaccion.sol": {
+			"keccak256": "0x1ed5d9fa645e1eab59cce64b3ca0db242397833e2795280f72dc4331c1307bfd",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://0c5c178d3c5cce913a1d285da9b3659f8c3da7e18fafc1d809040b493f6b24b2",
+				"dweb:/ipfs/QmRi66FH8Uf7N14Vg6whKfzLJsBFc9RP2ZjtgKJ2d79nmx"
+			]
+		}
+	},
+	"version": 1
+}
