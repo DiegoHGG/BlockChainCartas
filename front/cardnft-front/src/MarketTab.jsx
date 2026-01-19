@@ -185,8 +185,12 @@ export default function MarketTab({ provider, account, nftAddress, marketAddress
         });
       }
 
-      setTokens(rows);
-      setStatus(`✅ Ventas encontradas: ${rows.length}`);
+      const filtered = rows.filter(
+  (x) => x.listingSeller?.toLowerCase?.() !== account?.toLowerCase?.()
+);
+
+setTokens(filtered);
+setStatus(`✅ Ventas encontradas: ${filtered.length}`);
     } catch (e) {
       console.error(e);
       setStatus(`❌ Error cargando ventas: ${e?.shortMessage ?? e?.message ?? e}`);
