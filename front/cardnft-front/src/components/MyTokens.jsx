@@ -12,7 +12,7 @@ const NFT_ABI = [
   "function approve(address to, uint256 tokenId)",
   "function setApprovalForAll(address operator, bool approved)",
   "function getCard(uint256 tokenId) view returns (address owner,string juego,string expansion,uint256 numero,string rareza,uint8 estado,uint64 updatedAt)",
-
+"function updateEstado(uint256 tokenId, uint8 nuevoEstado)",
 ];
 
 // ABI mínimo del Market (list/cancel + lectura listing)
@@ -199,6 +199,28 @@ async function approveMarket(tokenId) {
 }
 
 
+async function approveCard(tokenId) {
+  try {
+    if (!provider) return;
+    const signer = await provider.getSigner();
+    const nft = new ethers.Contract(nftAddress, NFT_ABI, signer);
+
+    onStatus?.(`Aprobando carta ${tokenId}...`);
+
+    // scegli uno stato "approved": GOOD = 3 (coerente col tuo enum)
+    const tx = await nft.updateEstado(BigInt(tokenId), 3);
+    await tx.wait();
+
+    onStatus?.(`✅ Carta ${tokenId} aprobada`);
+    await loadMyTokens();
+  } catch (e) {
+    console.error(e);
+    onStatus?.(`❌ Aprobar carta falló: ${e?.shortMessage ?? e?.message ?? e}`);
+  }
+}
+
+
+
   async function listToken(tokenId) {
     try {
       if (!provider) return;
@@ -277,6 +299,8 @@ async function approveMarket(tokenId) {
             const approvedOk =
               t.isForAll || (t.approved?.toLowerCase?.() === marketAddress?.toLowerCase?.());
 
+ const isPendingCard = Number(t.estado) === 0;      // UNKNOWN => pending
+ const isApprovedCard = Number(t.estado) !== 0; 
             return (
               <div key={t.tokenId} className={styles.tokenCard}>
                 <div className={styles.top}>
@@ -307,13 +331,17 @@ async function approveMarket(tokenId) {
 
                 <div className={styles.actions}>
                   <button
-                    className={`btn ${approvedOk ? "" : "btnPrimary"}`}
-                    onClick={() => approveMarket(t.tokenId)}
-                    disabled={approvedOk}
-                    title={approvedOk ? "Ya aprobado" : "Aprobar el market para vender"}
-                  >
-                    {approvedOk ? "✅ Approved" : "Approve Market"}
-                  </button>
+  className={`btn ${isApprovedCard ? "" : ""}`}  // lasciamo stile base "btn"
+  onClick={() => approveCard(t.tokenId)}
+  disabled={isApprovedCard}
+  title={isApprovedCard ? "Ya aprobado" : "Click para aprobar la carta"}
+  style={{
+    opacity: isApprovedCard ? 1 : 0.85,
+    filter: isApprovedCard ? "none" : "grayscale(1)", // grigio quando pending
+  }}
+>
+  {isApprovedCard ? "✅ Approved" : "Pending (click)"}
+</button>
 
                   {pending ? (
   <>

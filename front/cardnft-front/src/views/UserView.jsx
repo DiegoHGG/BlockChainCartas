@@ -49,7 +49,7 @@ export default function UserView({ provider, account, nftAddress, marketAddress,
         expansion,
         BigInt(numero),
         rareza,
-        Number(estado)
+         0
       );
       await tx.wait();
 
