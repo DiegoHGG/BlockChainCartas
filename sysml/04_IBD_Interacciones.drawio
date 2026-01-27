@@ -1,0 +1,116 @@
+sequenceDiagram
+autonumber
+
+actor U as Usuario
+participant B as Navegador
+participant FE as FrontendWeb (dApp)
+participant MM as MetaMask (wallet)
+participant RPC as Besu RPC (JSON-RPC)
+participant NFT as CardNFT (ERC-721)
+participant MKT as Market (CardNFTMarketNative)
+
+%% =========================================================
+%% 1) Conectar wallet y cargar estado
+%% =========================================================
+rect rgba(230, 245, 255, 0.8)
+U->>B: Abre la dApp
+B->>FE: Carga UI
+U->>FE: "Connect Wallet"
+FE->>MM: eth_requestAccounts
+MM-->>FE: account[]
+FE->>MM: eth_chainId
+MM-->>FE: chainId
+FE->>RPC: eth_call (balanceOf)
+RPC->>NFT: balanceOf(account)
+NFT-->>RPC: balance
+RPC-->>FE: balance
+FE-->>U: Muestra cuenta + tokens
+end
+
+%% =========================================================
+%% 2) Listar y comprar (Marketplace)
+%% =========================================================
+rect rgba(240, 255, 240, 0.8)
+U->>FE: Selecciona tokenId y precio ("List")
+FE->>RPC: eth_call getApproved(tokenId)
+RPC->>NFT: getApproved(tokenId)
+NFT-->>RPC: approvedAddr
+RPC-->>FE: approvedAddr
+
+alt No aprobado al Market
+  FE->>MM: approve(Market, tokenId) (tx)
+  MM->>RPC: eth_sendTransaction
+  RPC->>NFT: approve(Market, tokenId)
+  NFT-->>RPC: tx receipt
+  RPC-->>MM: receipt
+end
+
+FE->>MM: createListing(tokenId, price) (tx)
+MM->>RPC: eth_sendTransaction
+RPC->>MKT: createListing(tokenId, price)
+MKT-->>RPC: tx receipt
+RPC-->>MM: receipt
+FE-->>U: Listing creado (visible en Market)
+
+U->>FE: Compra listing (buy)
+FE->>MM: buy(tokenId) + value=price (tx)
+MM->>RPC: eth_sendTransaction
+RPC->>MKT: buy(tokenId)
+MKT->>NFT: safeTransferFrom(seller,buyer,tokenId)
+NFT-->>MKT: transfer ok
+MKT-->>RPC: tx receipt
+RPC-->>MM: receipt
+FE-->>U: Compra completada
+end
+
+%% =========================================================
+%% 3) Swap atómico NFT↔NFT
+%% =========================================================
+rect rgba(255, 245, 230, 0.85)
+U->>FE: Crea oferta swap (offeredId, wantedId)
+FE->>RPC: eth_call getApproved(offeredId)
+RPC->>NFT: getApproved(offeredId)
+NFT-->>RPC: approvedAddr
+RPC-->>FE: approvedAddr
+
+alt No aprobado al Market para offeredId
+  FE->>MM: approve(Market, offeredId) (tx)
+  MM->>RPC: eth_sendTransaction
+  RPC->>NFT: approve(Market, offeredId)
+  NFT-->>RPC: receipt
+  RPC-->>MM: receipt
+end
+
+FE->>MM: offerSwap(offeredId, wantedId) (tx)
+MM->>RPC: eth_sendTransaction
+RPC->>MKT: offerSwap(offeredId, wantedId)
+MKT-->>RPC: offerId/receipt
+RPC-->>MM: receipt
+FE-->>U: Oferta creada
+
+Note over U,FE: El propietario de wantedId debe aceptar
+
+U->>FE: Acepta oferta swap (offerId)
+FE->>RPC: eth_call getApproved(wantedId)
+RPC->>NFT: getApproved(wantedId)
+NFT-->>RPC: approvedAddr
+RPC-->>FE: approvedAddr
+
+alt No aprobado al Market para wantedId
+  FE->>MM: approve(Market, wantedId) (tx)
+  MM->>RPC: eth_sendTransaction
+  RPC->>NFT: approve(Market, wantedId)
+  NFT-->>RPC: receipt
+  RPC-->>MM: receipt
+end
+
+FE->>MM: acceptSwap(offerId) (tx)
+MM->>RPC: eth_sendTransaction
+RPC->>MKT: acceptSwap(offerId)
+MKT->>NFT: safeTransferFrom(userA,userB,offeredId)
+MKT->>NFT: safeTransferFrom(userB,userA,wantedId)
+NFT-->>MKT: transfers ok
+MKT-->>RPC: tx receipt
+RPC-->>MM: receipt
+FE-->>U: Swap completado (atómico)
+end

@@ -1,0 +1,61 @@
+classDiagram
+direction TB
+
+class Usuario {
+  <<external>>
+}
+
+class Navegador {
+  <<external>>
+}
+
+class MetaMask {
+  <<external>>
+  +connect()
+  +signTransaction()
+  +injectProvider(window.ethereum)
+}
+
+class BesuRPC {
+  <<external>>
+  +eth_call()
+  +eth_sendRawTransaction()
+  +eth_getLogs()
+}
+
+class FrontendWeb {
+  <<block>>
+  +UI Views
+  +ethers.js integration
+  +readData()
+  +sendTx()
+}
+
+class CardNFT {
+  <<block>>
+  +ERC721Enumerable
+  +mintCard()
+  +approve()
+  +setApprovalForAll()
+  +getCard()
+}
+
+class CardNFTMarketNative {
+  <<block>>
+  +list()
+  +cancel()
+  +buy()
+  +offerSwap()
+  +acceptSwap()
+  +rejectSwap()
+}
+
+%% --- Relaciones (BDD) ---
+Usuario --> Navegador : usa
+Navegador --> FrontendWeb : carga
+FrontendWeb ..> MetaMask : usa provider/signer
+MetaMask --> BesuRPC : JSON-RPC
+BesuRPC --> CardNFT : calls/tx
+BesuRPC --> CardNFTMarketNative : calls/tx
+
+CardNFTMarketNative ..> CardNFT : ownerOf/transfer/approvals

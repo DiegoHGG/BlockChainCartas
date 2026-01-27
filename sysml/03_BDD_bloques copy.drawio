@@ -1,0 +1,150 @@
+classDiagram
+direction TB
+
+%% =========================
+%% Externos
+%% =========================
+class Usuario {
+  <<external>>
+}
+
+class NavegadorWeb {
+  <<external>>
+  +renderUI()
+}
+
+class MetaMaskWallet {
+  <<external>>
+  +connect()
+  +signTx()
+  +getAccount()
+  +switchNetwork()
+}
+
+class BesuRPC {
+  <<external>>
+  +eth_call()
+  +eth_sendTransaction()
+  +eth_getLogs()
+  +net_version()
+}
+
+%% =========================
+%% Sistema (bloque raíz)
+%% =========================
+class CardNFT_DApp {
+  <<block>>
+  +connectWallet()
+  +showMyTokens()
+  +showMarket()
+  +executeBuy()
+  +executeSwap()
+}
+
+%% =========================
+%% Partes internas del sistema
+%% =========================
+class FrontendWeb {
+  <<block>>
+  +Views: MyTokens / Market / Swap
+  +State: account, provider, network
+  +readOnChain()
+  +sendTxViaMetaMask()
+}
+
+class ContractBindings {
+  <<block>>
+  +NFT_ABI
+  +MARKET_ABI
+  +nftRead()
+  +marketRead()
+  +nftWrite(signer)
+  +marketWrite(signer)
+}
+
+class Config {
+  <<block>>
+  +CHAIN_ID
+  +RPC_URL
+  +NFT_ADDRESS
+  +MARKET_ADDRESS
+}
+
+%% =========================
+%% Smart Contracts (on-chain)
+%% =========================
+class CardNFT {
+  <<block>>
+  +ERC721Enumerable
+  +mintCard()
+  +balanceOf()
+  +tokenOfOwnerByIndex()
+  +approve()
+  +setApprovalForAll()
+  +getApproved()
+  +getCard()
+}
+
+class CardNFTMarketNative {
+  <<block>>
+  +createListing()
+  +cancelListing()
+  +finalizeListing()  %% validación/puesta en venta si aplica
+  +buy()
+  +offerSwap()
+  +acceptSwap()
+  +rejectSwap()
+  +getListing()
+}
+
+%% =========================
+%% Interfaces (conceptuales)
+%% =========================
+class IWebUI {
+  <<interface>>
+  +interact()
+}
+
+class IWalletProvider {
+  <<interface>>
+  +request()
+  +getSigner()
+}
+
+class IBlockchainRPC {
+  <<interface>>
+  +call()
+  +sendTx()
+}
+
+%% =========================
+%% Composición (BDD: partes del sistema)
+%% =========================
+CardNFT_DApp *-- FrontendWeb : part
+CardNFT_DApp *-- ContractBindings : part
+CardNFT_DApp *-- Config : part
+
+%% =========================
+%% Realización de interfaces
+%% =========================
+FrontendWeb ..|> IWebUI
+MetaMaskWallet ..|> IWalletProvider
+BesuRPC ..|> IBlockchainRPC
+
+%% =========================
+%% Dependencias / flujos principales
+%% =========================
+Usuario --> NavegadorWeb : usa
+NavegadorWeb --> FrontendWeb : carga UI
+
+FrontendWeb ..> MetaMaskWallet : provider/signer
+MetaMaskWallet --> BesuRPC : JSON-RPC
+
+ContractBindings ..> Config : lee direcciones/chainId
+ContractBindings ..> CardNFT : llamadas ABI
+ContractBindings ..> CardNFTMarketNative : llamadas ABI
+
+BesuRPC --> CardNFT : calls/tx
+BesuRPC --> CardNFTMarketNative : calls/tx
+
+CardNFTMarketNative ..> CardNFT : ownerOf/transfer/approvals

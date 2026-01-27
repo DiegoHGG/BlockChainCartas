@@ -1,0 +1,67 @@
+requirementDiagram
+direction TB
+
+requirement REQ_01 {
+  id: "REQ-01"
+  text: "El sistema debe representar cada carta como un NFT conforme al estándar ERC-721."
+  risk: Medium
+  verifymethod: Inspection
+}
+
+requirement REQ_02 {
+  id: "REQ-02"
+  text: "El sistema debe permitir consultar la propiedad y la trazabilidad on-chain de cada carta."
+  risk: Low
+  verifymethod: Inspection
+}
+
+requirement REQ_03 {
+  id: "REQ-03"
+  text: "Cada NFT debe almacenar metadatos: juego, expansion, numero, rareza y estado."
+  risk: Medium
+  verifymethod: Inspection
+}
+
+requirement REQ_04 {
+  id: "REQ-04"
+  text: "El sistema debe implementar control de acceso basado en roles (admin e inspector)."
+  risk: High
+  verifymethod: Test
+}
+
+requirement REQ_05 {
+  id: "REQ-05"
+  text: "El sistema debe permitir listar y comprar cartas mediante un marketplace descentralizado."
+  risk: Medium
+  verifymethod: Test
+}
+
+requirement REQ_06 {
+  id: "REQ-06"
+  text: "Los listados deben pasar por una fase de validacion antes de publicarse para la venta."
+  risk: Medium
+  verifymethod: Test
+}
+
+requirement REQ_07 {
+  id: "REQ-07"
+  text: "El sistema debe permitir intercambios atomicos NFT a NFT (swap) entre usuarios."
+  risk: High
+  verifymethod: Test
+}
+
+requirement REQ_08 {
+  id: "REQ-08"
+  text: "La dApp debe permitir interaccion con los contratos usando una wallet externa (MetaMask)."
+  risk: Low
+  verifymethod: Demonstration
+}
+
+REQ_01 - satisfies -> REQ_02
+REQ_01 - satisfies -> REQ_03
+REQ_03 - refines -> REQ_04
+REQ_05 - refines -> REQ_06
+REQ_05 - refines -> REQ_07
+REQ_02 - satisfies -> REQ_08
+REQ_05 - satisfies -> REQ_08
+REQ_07 - satisfies -> REQ_08
